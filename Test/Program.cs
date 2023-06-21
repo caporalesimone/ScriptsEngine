@@ -10,11 +10,11 @@ namespace Test
             //ScriptsEngine n = new ScriptsEngine();
             ScriptFactory factory = new ScriptFactory();
 
-            IScript csharp = factory.CreateScript("D:\\Progetti\\ScriptsEngine\\ScriptsEngine\\ScriptsEngine\\Script_CSharp.cs");
+            AScript csharp = factory.CreateScript(@"TestFiles\hello_world.cs");
+            csharp.Compile();
 
-            IScript python = factory.CreateScript("py");
 
-            IScript fail = factory.CreateScript("err");
+            AScript fail = factory.CreateScript("err");
 
             Console.ReadKey();
 
