@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection.Emit;
+using System.Threading;
 
 namespace ScriptsEngine
 {
-    public enum ScriptType : byte {
-        CSHARP = 0,
-        PYTHON = 1,
-        UOSTEAM = 2,
-
-        UNKNOWN = 255
+    public enum ScriptType : byte
+    {
+        UNKNOWN = 0,
+        CSHARP = 1,
+        PYTHON = 2,
+        UOSTEAM = 3,
     }
 
     /// <summary>
@@ -23,9 +19,10 @@ namespace ScriptsEngine
     /// </summary>
     public interface IScript
     {
-        string Path { get; }
         ScriptType Type { get; }
-        Assembly Assembly { get; }
+        string FullPath { get; }
+        string FileName { get; }
+        DateTime LastModified { get; }
     }
 
     /// <summary>
@@ -33,23 +30,31 @@ namespace ScriptsEngine
     /// </summary>
     public abstract class AScript : IScript
     {
-        public string Path { get; }
-        public ScriptType Type { get; }
+        public ScriptType Type { get; protected set; }
+        public string FullPath { get; }
+        public string FileName { get => Path.GetFileName(FullPath); }
+        public DateTime LastModified { get => File.GetLastWriteTime(FullPath); }
 
-        public Assembly Assembly { get; private set; }
-
+        /// <summary>
+        /// Abstract Script Contructor
+        /// </summary>
+        /// <param name="path">Script path</param>
         public AScript(string path)
         {
-            Path = path;
-            Assembly = null;
-            Type = ValidateScript();
+            FullPath = path;
+            Type = ScriptType.UNKNOWN;
         }
 
         /// <summary>
-        /// Force implementation of a ValidateScript function specific for the script
+        /// Force a specific validation of the script
         /// </summary>
-        /// <returns></returns>
-        protected abstract ScriptType ValidateScript();
+        /// <returns>true if validates</returns>
+        public abstract bool ValidateScript();
+
+        /// <summary>
+        /// This method compile the script
+        /// </summary>
+        public abstract bool Compile();
     }
 
 
@@ -64,25 +69,47 @@ namespace ScriptsEngine
     public class ScriptFactory //: ScriptFactoryAbstract
     {
         //public override IScript CreateScript(string path)
-        public IScript CreateScript(string path)
+
+        /// <summary>
+        /// Factory Class to create a Script Class
+        /// </summary>
+        /// <param name="path">Path on filesystem of the script</param>
+        /// <returns></returns>
+        public AScript CreateScript(string path)
         {
             if (path == null) return null;
             if (!File.Exists(path)) return null;
 
+            path = Path.GetFullPath(path); // Converts a possible relative path into an absolute path
             string ext = Path.GetExtension(path);
+
+            AScript ret;
             switch (ext)
             {
                 case ".cs":
-                    var cs = new CSharpScript(path);
-                    return cs;
+                    ret = new CSharpScript(path);
+                    break;
                 case ".py":
-                    var py = new PythonScript(path);
-                    return py;
+                    //ret = new PythonScript(path);
+                    throw new NotImplementedException();
+#pragma warning disable CS0162 // È stato rilevato codice non raggiungibile
+                    break;
+#pragma warning restore CS0162 // È stato rilevato codice non raggiungibile
+                case ".uos":
+                    //ret = new UOSScript(path);
+                    throw new NotImplementedException();
+#pragma warning disable CS0162 // È stato rilevato codice non raggiungibile
+                    break;
+#pragma warning restore CS0162 // È stato rilevato codice non raggiungibile
                 default:
-                    return null;
+                    ret = null;
+                    break;
             }
+
+            if (ret.ValidateScript()) return ret;
+            return null;
         }
     }
 
-    
+
 }

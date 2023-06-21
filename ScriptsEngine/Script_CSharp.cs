@@ -11,13 +11,23 @@ namespace ScriptsEngine
     {
         public CSharpScript(string path) : base (path)
         {
+            Type = ScriptType.CSHARP;
         }
-
-        protected override ScriptType ValidateScript()
+        
+        /// <summary>
+        /// This function should validate the content of the script if is needed
+        /// </summary>
+        /// <returns>returns true if validates</returns>
+        public override bool ValidateScript()
         {
-            return ScriptType.CSHARP;
+// TODO
+            return true;
         }
-
+        public override bool Compile()
+        {
+            CSharpEngine.Instance.CompileFromFile(FullPath, true, out _, out _);
+            return true;
+        }
     }
 
 }
