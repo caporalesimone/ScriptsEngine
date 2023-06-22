@@ -57,7 +57,7 @@ namespace ScriptsEngine
             public string CompilerVersion { get => _compilerVersion; set { _compilerVersion = value; } }
             public bool WarnAsError => false;
             public bool UseAspNetSettings => true;
-            public string CompilerFullPath => Path.Combine(Assistant.Engine.RootPath, "roslyn", "csc.exe");
+            public string CompilerFullPath => Path.Combine("roslyn", "csc.exe");
             public int CompilerServerTimeToLive => 60 * 60; // 1h
             IDictionary<string, string> IProviderOptions.AllOptions { get => _compilerOptions; }
             IDictionary<string, string> Options { set { _compilerOptions = value; } } // For Debug
@@ -81,7 +81,7 @@ namespace ScriptsEngine
                 }
             }
 
-            // Replace with full path all assemblis that are in razor path
+            // Replace with full path of all assemblies that are in razor path
             for (int i = 0; i < assemblies.Count; i++)
             {
                 string assembly_path = Path.Combine(Assistant.Engine.RootPath, assemblies[i]);
@@ -90,10 +90,11 @@ namespace ScriptsEngine
                     assemblies[i] = assembly_path;
                 }
             }
-
+            /*
             // Adding Razor and Ultima.dll as default
             assemblies.Add(Assistant.Engine.RootPath + Path.DirectorySeparatorChar + "RazorEnhanced.exe");
             assemblies.Add(Assistant.Engine.RootPath + Path.DirectorySeparatorChar + "Ultima.dll");
+            */
             return assemblies;
         }
 
@@ -329,15 +330,15 @@ namespace ScriptsEngine
         // https://docs.microsoft.com/it-it/dotnet/api/microsoft.csharp.csharpcodeprovider.-ctor?view=net-5.0
         // https://github.com/aspnet/RoslynCodeDomProvider/blob/main/src/Microsoft.CodeDom.Providers.DotNetCompilerPlatform/Util/IProviderOptions.cs
         // https://josephwoodward.co.uk/2016/12/in-memory-c-sharp-compilation-using-roslyn
-        public bool CompileFromFile(string path, bool debug, out List<string> errorwarnings, out Assembly assembly)
+        public bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly)
         {
             errorwarnings = new();
             assembly = null;
 
-            debug = CheckForceDebugDirective(path, debug); // The forcedebug directive, if present, will override the value of debug variable
+            debug = CheckForceDebugDirective(scriptPath, debug); // The forcedebug directive, if present, will override the value of debug variable
 
             List<string> filesList = new() { }; // List of files.
-            FindAllIncludedCSharpScript(path, ref filesList, ref errorwarnings);
+            FindAllIncludedCSharpScript(scriptPath, ref filesList, ref errorwarnings);
             if (errorwarnings.Count > 0)
             {
                 return true;
@@ -352,7 +353,7 @@ namespace ScriptsEngine
 
             if (debug)
             {
-                Misc.SendMessage("Compiling C# Script [DEBUG] " + Path.GetFileName(path));
+                Misc.SendMessage("Compiling C# Script [DEBUG] " + Path.GetFileName(scriptPath));
             }
 
             DateTime start = DateTime.Now;

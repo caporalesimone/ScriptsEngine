@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptsEngine", "ScriptsEngine\ScriptsEngine.csproj", "{22102642-865C-4D21-9487-4D5F58D96804}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{72EEC31C-77CB-485B-9316-5190B0123B15}"
-	ProjectSection(ProjectDependencies) = postProject
-		{22102642-865C-4D21-9487-4D5F58D96804} = {22102642-865C-4D21-9487-4D5F58D96804}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

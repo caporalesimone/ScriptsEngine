@@ -3,6 +3,8 @@ using System;
 
 namespace Test
 {
+    // Nuget Package Microsoft.CodeDom.Providers.DotNetCompilerPlatform is required for add Roslyn compiler into the output folder
+
     internal class Program
     {
         static void Main(string[] args)
@@ -16,7 +18,7 @@ namespace Test
 
             AScript fail = factory.CreateScript("err");
 
-            Console.ReadKey();
+            //Console.ReadKey();
 
         }
     }

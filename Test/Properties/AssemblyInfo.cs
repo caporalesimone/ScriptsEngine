@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Test")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CNH Industrial")]
+[assembly: AssemblyCompany("SimonSoft")]
 [assembly: AssemblyProduct("Test")]
-[assembly: AssemblyCopyright("Copyright © CNH Industrial 2023")]
+[assembly: AssemblyCopyright("SimonSoft© 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
