@@ -13,14 +13,18 @@ namespace Test
 
             IScript csharp = factory.CreateScript(@"TestFiles\hello_world.cs");
             csharp.CompileAsync();
+            var a = csharp.GetType();
+
 
             IScript fail = factory.CreateScript("err");
             if (fail == null) { Console.WriteLine("Error!"); }
 
-            Console.ReadKey();
+            //Console.ReadKey();
+            Console.WriteLine("Waiting...");
+            System.Threading.Thread.Sleep(2000);
+            Console.WriteLine("Executing script");
             csharp.ExecuteScriptAsync();
             Console.ReadKey();
-
         }
     }
 }

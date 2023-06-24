@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScriptsEngine
@@ -48,7 +49,14 @@ namespace ScriptsEngine
         /// <summary>
         /// This property tells if the script is ready to be executed
         /// </summary>
-        public abstract bool IsExecutable { get; }
+        public abstract bool IsReady { get; }
+
+        public bool IsRunning
+        {
+            get => (m_ScriptExecutionThread != null && m_ScriptExecutionThread.ThreadState != ThreadState.Stopped);
+        }
+
+        protected Thread m_ScriptExecutionThread = null;
 
         /// <summary>
         /// Abstract Script Contructor
@@ -58,6 +66,7 @@ namespace ScriptsEngine
         {
             Type = ScriptType.UNKNOWN;
             FullPath = path;
+            m_ScriptExecutionThread = null;
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace ScriptsEngine
             m_assembly = null;
         }
 
-        public override bool IsExecutable { get => m_assembly != null ? true : false; }
+        public override bool IsReady => m_assembly != null;
 
         /// <summary>
         /// This function should validate the content of the script if is needed
@@ -42,7 +42,8 @@ namespace ScriptsEngine
         {
             if (m_assembly == null) return false;
 
-            new Thread(() => CSharpCompiler.Execute(m_assembly)).Start();
+            m_ScriptExecutionThread = new Thread(() => CSharpCompiler.Execute(m_assembly));
+            m_ScriptExecutionThread.Start();
             return true;
         }
     }
