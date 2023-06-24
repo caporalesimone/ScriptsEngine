@@ -1,18 +1,17 @@
 using System;
 
-namespace HelloWorld
+namespace CSharpScriptsExamples
 {
-  class Hello
+  class HelloWorld
   {
-    public Hello()
+    public HelloWorld()
     {
-		Console.WriteLine("Constructor");
+		Console.WriteLine("HelloWorld - Constructor");
     }
 	
 	public void Run()
 	{
-		Console.WriteLine("Premi un tasto per terminare il programma");
-		Console.ReadKey();
+		Console.WriteLine("HelloWorld - Run Method");
 	}
   }
 }

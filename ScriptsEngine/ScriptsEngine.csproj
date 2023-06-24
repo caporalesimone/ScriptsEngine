@@ -54,9 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assistant.cs" />
+    <Compile Include="IScript.cs" />
+    <Compile Include="to_be_removed\Assistant.cs" />
     <Compile Include="CSharpCompiler.cs" />
-    <Compile Include="Misc.cs" />
+    <Compile Include="to_be_removed\Misc.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

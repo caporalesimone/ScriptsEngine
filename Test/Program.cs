@@ -9,16 +9,17 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            //ScriptsEngine n = new ScriptsEngine();
             ScriptFactory factory = new ScriptFactory();
 
-            AScript csharp = factory.CreateScript(@"TestFiles\hello_world.cs");
-            csharp.Compile();
+            IScript csharp = factory.CreateScript(@"TestFiles\hello_world.cs");
+            csharp.CompileAsync();
 
+            IScript fail = factory.CreateScript("err");
+            if (fail == null) { Console.WriteLine("Error!"); }
 
-            AScript fail = factory.CreateScript("err");
-
-            //Console.ReadKey();
+            Console.ReadKey();
+            csharp.ExecuteScriptAsync();
+            Console.ReadKey();
 
         }
     }

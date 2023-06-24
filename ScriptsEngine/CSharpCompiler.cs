@@ -10,26 +10,9 @@ using System;
 
 namespace ScriptsEngine
 {
-    public class CSharpEngine
+    public class CSharpCompiler
     {
-        private static CSharpEngine m_instance = null;
-
-        public static CSharpEngine Instance
-        {
-            get
-            {
-                if (m_instance == null)
-                {
-                    m_instance = new CSharpEngine();
-                }
-                return m_instance;
-            }
-        }
-        private CSharpEngine()
-        {
-        }
-
-        private CompilerParameters CompilerSettings(bool IncludeDebugInformation, List<string> assemblies)
+        private static CompilerParameters CompilerSettings(bool IncludeDebugInformation, List<string> assemblies)
         {
             CompilerParameters parameters = new();
             List<string> assemblies_cfg = GetReferenceAssemblies(); // Gets all assemblies inside the Assemblies.cfg file
@@ -63,7 +46,7 @@ namespace ScriptsEngine
             IDictionary<string, string> Options { set { _compilerOptions = value; } } // For Debug
         }
 
-        private List<string> GetReferenceAssemblies()
+        private static List<string> GetReferenceAssemblies()
         {
             List<string> assemblies = new();
 
@@ -98,7 +81,7 @@ namespace ScriptsEngine
             return assemblies;
         }
 
-        private bool ManageCompileResult(CompilerResults results, ref List<string> errorwarnings)
+        private static bool ManageCompileResult(CompilerResults results, ref List<string> errorwarnings)
         {
             bool has_error = true;
 
@@ -131,7 +114,7 @@ namespace ScriptsEngine
         /// <param name="directive">Which directive must be found</param>
         /// <param name="directiveList">List of all directives found</param>
         /// <returns>Returns false if file does not exist</returns>
-        private bool FindDirectivesInFile(string filename, string directive, ref List<string> directiveList)
+        private static bool FindDirectivesInFile(string filename, string directive, ref List<string> directiveList)
         {
             if (!File.Exists(filename))
             {
@@ -161,7 +144,7 @@ namespace ScriptsEngine
         /// <param name="ignoreBasePath">Force to ignore the BasePath on the &lt; &gt; directive </param>
         /// <param name="filename">Extracted filename</param>
         /// <returns>Returns false if an error occurs</returns>
-        private bool ExtractFileNameFromDirective(string directive, string basepath, bool ignoreBasePath, out string filename)
+        private static bool ExtractFileNameFromDirective(string directive, string basepath, bool ignoreBasePath, out string filename)
         {
             if (directive.StartsWith("<") && directive.EndsWith(">"))
             {
@@ -189,7 +172,7 @@ namespace ScriptsEngine
         /// <param name="filesList">Full path of all files where search for the directive</param>
         /// <param name="assemblies">List of all assemblies that must be inclide during the compile process</param>
         /// <param name="errorwarnings">List of error and warnings</param>
-        private void FindAllAssembliesIncludedInCSharpScripts(List<string> filesList, ref List<string> assemblies, ref List<string> errorwarnings)
+        private static void FindAllAssembliesIncludedInCSharpScripts(List<string> filesList, ref List<string> assemblies, ref List<string> errorwarnings)
         {
             const string directive = "//#assembly";
 
@@ -230,7 +213,7 @@ namespace ScriptsEngine
         /// <param name="sourceFile">Full path of the source file</param>
         /// <param name="filesList">List of all files that must be compiled (it's a recursive list)</param>
         /// <param name="errorwarnings">List of error and warnings</param>
-        private void FindAllIncludedCSharpScript(string sourceFile, ref List<string> filesList, ref List<string> errorwarnings)
+        private static void FindAllIncludedCSharpScript(string sourceFile, ref List<string> filesList, ref List<string> errorwarnings)
         {
             const string directive = "//#import";
 
@@ -273,7 +256,7 @@ namespace ScriptsEngine
         /// <param name="sourceFile">Filename of the main source file</param>
         /// <param name="debug_requested">If false, Razor is requesting to run the script in release</param>
         /// <returns></returns>
-        private bool CheckForceDebugDirective(string sourceFile, bool debug_requested)
+        private static bool CheckForceDebugDirective(string sourceFile, bool debug_requested)
         {
             if (debug_requested) return true; // If already Razor is requesting debug no check needed
 
@@ -330,7 +313,7 @@ namespace ScriptsEngine
         // https://docs.microsoft.com/it-it/dotnet/api/microsoft.csharp.csharpcodeprovider.-ctor?view=net-5.0
         // https://github.com/aspnet/RoslynCodeDomProvider/blob/main/src/Microsoft.CodeDom.Providers.DotNetCompilerPlatform/Util/IProviderOptions.cs
         // https://josephwoodward.co.uk/2016/12/in-memory-c-sharp-compilation-using-roslyn
-        public bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly)
+        public static bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly)
         {
             errorwarnings = new();
             assembly = null;
@@ -380,7 +363,7 @@ namespace ScriptsEngine
             return has_error;
         }
 
-        public void Execute(Assembly assembly)
+        public static void Execute(Assembly assembly)
         {
             // This is important for methods visibility. Check if all of these flags are really needed.
             BindingFlags bf = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod;
