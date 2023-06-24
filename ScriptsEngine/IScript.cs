@@ -51,6 +51,9 @@ namespace ScriptsEngine
         /// </summary>
         public abstract bool IsReady { get; }
 
+        /// <summary>
+        /// Return the status of the script. True means the thread of the script is not stopped.
+        /// </summary>
         public bool IsRunning
         {
             get => (m_ScriptExecutionThread != null && m_ScriptExecutionThread.ThreadState != ThreadState.Stopped);
@@ -105,6 +108,11 @@ namespace ScriptsEngine
         /// </summary>
         /// <returns></returns>
         protected abstract bool ExecuteScritpAsycInternal();
+
+        /// <summary>
+        /// Stops the execution of the script
+        /// </summary>
+        public abstract void StopScriptAsync();
 
     }
 }

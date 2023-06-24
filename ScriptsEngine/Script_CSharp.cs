@@ -12,6 +12,7 @@ namespace ScriptsEngine
     public class CSharpScript : IScript
     {
         private Assembly m_assembly = null;
+        private object m_scriptInstance = null;
 
         public CSharpScript(string path) : base (path)
         {
@@ -42,10 +43,23 @@ namespace ScriptsEngine
         {
             if (m_assembly == null) return false;
 
-            m_ScriptExecutionThread = new Thread(() => CSharpCompiler.Execute(m_assembly));
+            m_ScriptExecutionThread = new Thread(() => CSharpCompiler.ExecuteScript(m_assembly, "Run", out m_scriptInstance, out _));
             m_ScriptExecutionThread.Start();
             return true;
         }
+
+        public override void StopScriptAsync()
+        {
+            new Thread(() =>
+            {
+                if (!IsRunning) return;
+
+                var task = Task.Run(() => CSharpCompiler.CallScriptMethod(m_assembly, m_scriptInstance, "Stop", out _));
+                task.Wait(TimeSpan.FromSeconds(10));
+                m_ScriptExecutionThread.Abort();
+            }).Start();
+        }
+
     }
 
 }

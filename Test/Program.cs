@@ -11,7 +11,9 @@ namespace Test
         {
             ScriptFactory factory = new ScriptFactory();
 
-            IScript csharp = factory.CreateScript(@"TestFiles\hello_world.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
+            IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
             csharp.CompileAsync();
             var a = csharp.GetType();
 
@@ -24,6 +26,11 @@ namespace Test
             System.Threading.Thread.Sleep(2000);
             Console.WriteLine("Executing script");
             csharp.ExecuteScriptAsync();
+            Console.ReadKey();
+            csharp.StopScriptAsync();
+            Console.ReadKey();
+            Console.ReadKey();
+            Console.WriteLine($"Thread is running: {csharp.IsRunning}");
             Console.ReadKey();
         }
     }

@@ -363,8 +363,11 @@ namespace ScriptsEngine
             return has_error;
         }
 
-        public static void Execute(Assembly assembly)
+        public static bool ExecuteScript(Assembly assembly, string methodName, out object scriptInstance, out string error)
         {
+            scriptInstance = null;
+            error = "";
+
             // This is important for methods visibility. Check if all of these flags are really needed.
             BindingFlags bf = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod;
 
@@ -376,17 +379,17 @@ namespace ScriptsEngine
             {
                 if (mt != null)
                 {
-                    MethodInfo method = mt.GetMethod("Run", bf);
+                    MethodInfo method = mt.GetMethod(methodName, bf);
                     if (method != null)
                     {
                         run = method;
                         runMethodsFound++;
                         if (runMethodsFound > 1)
                         {
-                            string error = "Found more than one 'public void Run()' method in script.\nMust be only one Run method.";
-                            Misc.SendMessage(error);
+                            error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
                             //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                            throw new Exception(error);
+                            //throw new Exception(error);
+                            return false;
                         }
                     }
                 }
@@ -396,16 +399,68 @@ namespace ScriptsEngine
             // SyntaxErrorException now and log it too
             if (run == null)
             {
-                string error = "Required method 'public void Run()' missing from script.";
-                Misc.SendMessage(error);
+                error += $"Required method 'public void {methodName}' missing from script.";
                 //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                throw new Exception(error);
+                //throw new Exception(error);
+                return false;
             }
 
             // Creates an instance of the class runs the Run method
-            object scriptInstance = Activator.CreateInstance(run.DeclaringType);
+            scriptInstance = Activator.CreateInstance(run.DeclaringType);
 
             run.Invoke(scriptInstance, null);
+            return true;
+        }
+
+
+        public static bool CallScriptMethod(Assembly assembly, object scriptInstance, string methodName, out string error)
+        {
+            error = "";
+            if (scriptInstance == null)
+            {
+                error = "Missing script istance";
+                return false;
+            }
+
+            // This is important for methods visibility. Check if all of these flags are really needed.
+            BindingFlags bf = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod;
+
+            MethodInfo run = null;
+
+            // Search trough all methods and finds Run then calls it
+            int runMethodsFound = 0;
+            foreach (Type mt in assembly.GetTypes())
+            {
+                if (mt != null)
+                {
+                    MethodInfo method = mt.GetMethod(methodName, bf);
+                    if (method != null)
+                    {
+                        run = method;
+                        runMethodsFound++;
+                        if (runMethodsFound > 1)
+                        {
+                            error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
+                            //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
+                            //throw new Exception(error);
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // If Run method does not exists would be rised an exception later but better to throw a
+            // SyntaxErrorException now and log it too
+            if (run == null)
+            {
+                error += $"Required method 'public void {methodName}' missing from script.";
+                //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
+                //throw new Exception(error);
+                return false;
+            }
+
+            run.Invoke(scriptInstance, null);
+            return true;
         }
 
     }
