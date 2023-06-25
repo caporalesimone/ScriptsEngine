@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Remoting.Channels;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ScriptsEngine
 {
@@ -117,6 +112,14 @@ namespace ScriptsEngine
         /// <summary>
         /// Stops the execution of the script
         /// </summary>
-        public abstract void StopScriptAsync();
+        public void StopScriptAsync()
+        {
+            StopScriptAsyncInternal();
+        }
+
+        /// <summary>
+        /// Internal implementation of the StopScriptAsync Method
+        /// </summary>
+        protected abstract void StopScriptAsyncInternal();
     }
 }

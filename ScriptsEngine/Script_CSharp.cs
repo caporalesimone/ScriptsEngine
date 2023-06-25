@@ -70,7 +70,7 @@ namespace ScriptsEngine
             m_ScriptExecutionThread.Start();
         }
 
-        public override void StopScriptAsync()
+        protected override void StopScriptAsyncInternal()
         {
             // Stop async will run a new thread that will call the Stop method of the script and will wait that main thread and stop thread
             // ends gracefully. If this not happen within 10 seconds, who is still running will be aborted

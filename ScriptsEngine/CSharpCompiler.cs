@@ -2,13 +2,10 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-//using Microsoft.Scripting;
 using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System;
-using System.Threading;
-using System.Runtime.InteropServices;
 
 namespace ScriptsEngine
 {
