@@ -16,9 +16,9 @@ namespace Test
             if (fail == null) { Console.WriteLine("Error!"); }
             */
 
-            IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
             //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
+            IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
             //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_graceful.cs");
             //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
             

@@ -322,11 +322,13 @@ namespace ScriptsEngine
         /// <param name="debug">Compile debug or release</param>
         /// <param name="errorwarnings">List or error and warnings</param>
         /// <param name="assembly">the output assembly</param>
+        /// <param name="runMethod">the class containing the Run method of the script</param>
         /// <returns>false is build failed</returns>
-        public static bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly)
+        public static bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly, out MethodInfo runMethod)
         {
             errorwarnings = new();
             assembly = null;
+            runMethod = null;
 
             debug = CheckForceDebugDirective(scriptPath, debug); // The forcedebug directive, if present, will override the value of debug variable
 
@@ -371,10 +373,11 @@ namespace ScriptsEngine
             {
                 assembly = results.CompiledAssembly;
 
-                int countRunMethod = FindMethod(assembly, "Run", out _);
+                int countRunMethod = FindMethod(assembly, "Run", out runMethod);
                 if (countRunMethod != 1)
                 {
                     assembly = null; // Assembly is not valid anymore
+                    runMethod = null; // Run method is not valid anymore
                     has_error = true;
                     errorwarnings.Add($"Error: found {countRunMethod} Run method in the Assemby");
                 }
@@ -418,58 +421,26 @@ namespace ScriptsEngine
             return methodsCount;
         }
 
-
         /// <summary>
-        /// This function will start the script execution
+        /// Creates an Instance of the script class
         /// </summary>
-        /// <param name="assembly">Assambly that contains the script</param>
-        /// <param name="scriptInstance">Instance of the script class</param>
-        /// <param name="error">Errors</param>
-        /// <returns>true if script started</returns>
-        public static bool ExecuteScript(Assembly assembly, out object scriptInstance, out Thread executionThread, out string error)
+        /// <param name="assembly">Asembly of the class</param>
+        /// <param name="runMethod">Method contained in the class that needs to be instantiated</param>
+        /// <returns>The instance</returns>
+        public static object CreateScriptInstance(Assembly assembly, MethodInfo runMethod)
         {
-            string methodName = "Run";
-            scriptInstance = null;
-            executionThread = null;
-            error = "";
-
-            if (FindMethod(assembly, methodName, out MethodInfo run) > 1)
-            {
-                error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
-                //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                //throw new Exception(error);
-                return false;
-            }
-
-            // If Run method does not exists would be rised an exception later but better to throw a
-            // SyntaxErrorException now and log it too
-            if (run == null)
-            {
-                error += $"Required method 'public void {methodName}' missing from script.";
-                //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                //throw new Exception(error);
-                return false;
-            }
-
-            // Creates an instance of the class runs the Run method
-            scriptInstance = Activator.CreateInstance(run.DeclaringType);
-
-            var instance = scriptInstance;
-            executionThread = new Thread(() => run.Invoke(instance, null) );
-            executionThread.Start();
-
-            return true;
+            return Activator.CreateInstance(runMethod.DeclaringType);
         }
 
         /// <summary>
-        /// This function calls a method of the script class
+        /// This function calls a method of the script class by Name
         /// </summary>
         /// <param name="assembly">Assambly that contains the script</param>
         /// <param name="scriptInstance">Instance of the script class</param>
         /// <param name="methodName">Method name</param>
         /// <param name="error">error founds</param>
         /// <returns>false on errors</returns>
-        public static bool CallScriptMethod(Assembly assembly, object scriptInstance, string methodName, out string error)
+        public static bool CallScriptMethodByName(Assembly assembly, object scriptInstance, string methodName, out string error)
         {
             error = "";
 
@@ -494,6 +465,23 @@ namespace ScriptsEngine
             // Calls the method
             run.Invoke(scriptInstance, null);
             return true;
+        }
+
+        /// <summary>
+        /// This function calls a method of the script class
+        /// </summary>
+        /// <param name="assembly">Assambly that contains the script</param>
+        /// <param name="scriptInstance">Instance of the script class</param>
+        /// <param name="method">Method that will be called</param>
+        /// <param name="error">error founds</param>
+        public static void CallScriptMethod(Assembly assembly, object scriptInstance, MethodInfo method, out string error)
+        {
+            error = "";
+
+            if ((scriptInstance != null) && (method != null))
+            {
+                method.Invoke(scriptInstance, null);
+            }
         }
 
     }
