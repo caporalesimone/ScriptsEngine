@@ -55,20 +55,15 @@ namespace ScriptsEngine
         {
             if (m_assembly == null) return;
 
-            m_ScriptExecutionThread = new Thread(() => 
-                {
-                    bool execute = CSharpCompiler.ExecuteScript(m_assembly, out m_scriptInstance, out _);
-                    if (execute) 
-                    {
-                        m_ScriptStatus = EScriptStatus.RUNNING;
-                    }
-                    else
-                    {
-                        m_ScriptStatus = EScriptStatus.ERROR;
-                    }
-                }
-            );
-            m_ScriptExecutionThread.Start();
+            bool execute = CSharpCompiler.ExecuteScript(m_assembly, out m_scriptInstance, out m_ScriptExecutionThread, out _);
+            if (execute) 
+            {
+               m_ScriptStatus = EScriptStatus.RUNNING;
+            }
+            else
+            {
+               m_ScriptStatus = EScriptStatus.ERROR;
+            }
         }
 
         public override void StopScriptAsync()
@@ -76,10 +71,11 @@ namespace ScriptsEngine
             // Stop async will run a new thread that will call the Stop method of the script and will wait that main thread and stop thread
             // ends gracefully. If this not happen within 10 seconds, who is still running will be aborted
 
+            if (m_ScriptStatus != EScriptStatus.RUNNING) return;
+            m_ScriptStatus = EScriptStatus.REQUESTED_TERMINATE;
+
             new Thread(() =>
             {
-                if (m_ScriptStatus != EScriptStatus.RUNNING) return;
-
                 // Now a new thread will be created and will call the Stop method of the script
                 var stop_thread = new Thread(() => CSharpCompiler.CallScriptMethod(m_assembly, m_scriptInstance, "Stop", out _));
                 stop_thread.Start();

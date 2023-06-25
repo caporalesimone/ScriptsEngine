@@ -7,6 +7,8 @@ using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System;
+using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace ScriptsEngine
 {
@@ -424,10 +426,11 @@ namespace ScriptsEngine
         /// <param name="scriptInstance">Instance of the script class</param>
         /// <param name="error">Errors</param>
         /// <returns>true if script started</returns>
-        public static bool ExecuteScript(Assembly assembly, out object scriptInstance, out string error)
+        public static bool ExecuteScript(Assembly assembly, out object scriptInstance, out Thread executionThread, out string error)
         {
             string methodName = "Run";
             scriptInstance = null;
+            executionThread = null;
             error = "";
 
             if (FindMethod(assembly, methodName, out MethodInfo run) > 1)
@@ -451,7 +454,10 @@ namespace ScriptsEngine
             // Creates an instance of the class runs the Run method
             scriptInstance = Activator.CreateInstance(run.DeclaringType);
 
-            run.Invoke(scriptInstance, null);
+            var instance = scriptInstance;
+            executionThread = new Thread(() => run.Invoke(instance, null) );
+            executionThread.Start();
+
             return true;
         }
 

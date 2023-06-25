@@ -23,6 +23,7 @@ namespace ScriptsEngine
         COMPILING,
         READY,
         RUNNING,
+        REQUESTED_TERMINATE,
         ERROR,
     }
 
