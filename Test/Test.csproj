@@ -63,7 +63,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestFiles\CSharp\02_test_stop_thread.cs">
+    <Compile Include="TestFiles\CSharp\02_test_stop_thread_abort_long.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="TestFiles\CSharp\02_test_stop_thread_abort.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="TestFiles\CSharp\02_test_stop_thread_graceful.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="TestFiles\CSharp\03_missing_run.cs">

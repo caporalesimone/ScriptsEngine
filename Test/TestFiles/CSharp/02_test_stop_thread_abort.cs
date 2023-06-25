@@ -1,17 +1,21 @@
+// This script, when stop is called will not stop and an abort will be required
+
 using System;
 
 namespace CSharpScriptsExamples
 {
-    class TestStopThread
+    class TestStopThread_Abort
     {
-        public TestStopThread()
+        private bool m_Run = true;
+
+        public TestStopThread_Abort()
         {
             Console.WriteLine("HelloWorld - Constructor");
         }
 
         public void Run()
         {
-            while (true)
+            while (m_Run)
             {
                 Console.WriteLine("HelloWorld - Run Method");
                 System.Threading.Thread.Sleep(1000);
@@ -20,9 +24,7 @@ namespace CSharpScriptsExamples
 
         public void Stop()
         {
-            Console.WriteLine("HelloWorld - Stop Method - Adding a sleep of 20 seconds. Thread kill should occour before the 20 seconds");
-            System.Threading.Thread.Sleep(20 * 1000);
-            Console.WriteLine("HelloWorld - Stop Method - This should not be reached");
+            Console.WriteLine("HelloWorld - Stop Method called. Now stop ends immediately without terminating Run");
         }
 
     }

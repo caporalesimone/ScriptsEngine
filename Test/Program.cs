@@ -11,26 +11,42 @@ namespace Test
         {
             ScriptFactory factory = new ScriptFactory();
 
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
-            IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread.cs");
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
-            csharp.CompileAsync();
-            var a = csharp.GetType();
-
-
+            /*
             IScript fail = factory.CreateScript("err");
             if (fail == null) { Console.WriteLine("Error!"); }
+            */
 
-            //Console.ReadKey();
-            Console.WriteLine("Waiting...");
-            System.Threading.Thread.Sleep(2000);
+
+            IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_graceful.cs");
+            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
+            csharp.CompileAsync();
+
+            while (csharp.ScriptStatus != EScriptStatus.READY)
+            {
+                System.Threading.Thread.Sleep(10);
+                if (csharp.ScriptStatus == EScriptStatus.ERROR)
+                {
+                    Console.WriteLine("Compile failed. Press a key to terminate.");
+                    Console.ReadKey();
+                    return;
+                }
+            }
+
             Console.WriteLine("Executing script");
             csharp.ExecuteScriptAsync();
+            System.Threading.Thread.Sleep(100);
+            Console.WriteLine($"Script State: {csharp.ScriptStatus}");
             Console.ReadKey();
+
             csharp.StopScriptAsync();
-            Console.ReadKey();
-            Console.ReadKey();
-            Console.WriteLine($"Thread is running: {csharp.IsRunning}");
+            while (csharp.ScriptStatus == EScriptStatus.RUNNING)
+            {
+                System.Threading.Thread.Sleep(10);
+            }
+            Console.WriteLine("Script Terminated. Press enter to end test.");
             Console.ReadKey();
         }
     }

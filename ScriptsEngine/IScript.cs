@@ -9,12 +9,21 @@ using System.Threading.Tasks;
 
 namespace ScriptsEngine
 {
-    public enum ScriptType : byte
+    public enum EScriptType : byte
     {
         UNKNOWN = 0,
         CSHARP = 1,
         PYTHON = 2,
         UOSTEAM = 3,
+    }
+
+    public enum EScriptStatus : byte
+    {
+        NOT_COMPILED,
+        COMPILING,
+        READY,
+        RUNNING,
+        ERROR,
     }
 
     /// <summary>
@@ -25,7 +34,7 @@ namespace ScriptsEngine
         /// <summary>
         /// Type of the script
         /// </summary>
-        public ScriptType Type { get; protected set; }
+        public EScriptType Type { get; protected set; }
         /// <summary>
         /// Contains the full path of the script into the filesystem
         /// </summary>
@@ -47,17 +56,19 @@ namespace ScriptsEngine
         /// </summary>
         public DateTime LastExecutionTime { get; private set; }
         /// <summary>
-        /// This property tells if the script is ready to be executed
+        /// This property tells the status of the script
         /// </summary>
-        public abstract bool IsReady { get; }
-
+        public abstract EScriptStatus ScriptStatus { get; }
+        
+        /*
         /// <summary>
         /// Return the status of the script. True means the thread of the script is not stopped.
         /// </summary>
         public bool IsRunning
         {
-            get => (m_ScriptExecutionThread != null && m_ScriptExecutionThread.ThreadState != ThreadState.Stopped);
+            get => (m_ScriptExecutionThread != null && m_ScriptExecutionThread.ThreadState != ThreadState.Stopped && m_ScriptExecutionThread.ThreadState != ThreadState.Aborted);
         }
+        */
 
         protected Thread m_ScriptExecutionThread = null;
 
@@ -67,7 +78,7 @@ namespace ScriptsEngine
         /// <param name="path">Script path</param>
         public IScript(string path)
         {
-            Type = ScriptType.UNKNOWN;
+            Type = EScriptType.UNKNOWN;
             FullPath = path;
             m_ScriptExecutionThread = null;
         }
@@ -81,33 +92,33 @@ namespace ScriptsEngine
         /// <summary>
         /// This method compile the script in a separate thread
         /// </summary>
-        public bool CompileAsync()
+        public void CompileAsync()
         {
             LastCompiledTime = DateTime.Now;
-            return CompileAsyncInternal();
+            CompileAsyncInternal();
         }
 
         /// <summary>
         /// Internal implementation of the CompileAsync Method
         /// </summary>
         /// <returns></returns>
-        protected abstract bool CompileAsyncInternal();
+        protected abstract void CompileAsyncInternal();
 
         /// <summary>
         /// This method executes the script in a sepatate thread
         /// </summary>
         /// <returns></returns>
-        public bool ExecuteScriptAsync()
+        public void ExecuteScriptAsync()
         {
             LastExecutionTime = DateTime.Now;
-            return ExecuteScritpAsycInternal();
+            ExecuteScritpAsycInternal();
         }
 
         /// <summary>
         /// Internal implementation of the ExecuteScriptAsync Method
         /// </summary>
         /// <returns></returns>
-        protected abstract bool ExecuteScritpAsycInternal();
+        protected abstract void ExecuteScritpAsycInternal();
 
         /// <summary>
         /// Stops the execution of the script

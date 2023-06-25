@@ -313,6 +313,14 @@ namespace ScriptsEngine
         // https://docs.microsoft.com/it-it/dotnet/api/microsoft.csharp.csharpcodeprovider.-ctor?view=net-5.0
         // https://github.com/aspnet/RoslynCodeDomProvider/blob/main/src/Microsoft.CodeDom.Providers.DotNetCompilerPlatform/Util/IProviderOptions.cs
         // https://josephwoodward.co.uk/2016/12/in-memory-c-sharp-compilation-using-roslyn
+        /// <summary>
+        /// This method Compiles the script and checks that Run method exists
+        /// </summary>
+        /// <param name="scriptPath">Path of the script in the filesystem</param>
+        /// <param name="debug">Compile debug or release</param>
+        /// <param name="errorwarnings">List or error and warnings</param>
+        /// <param name="assembly">the output assembly</param>
+        /// <returns>false is build failed</returns>
         public static bool CompileFromFile(string scriptPath, bool debug, out List<string> errorwarnings, out Assembly assembly)
         {
             errorwarnings = new();
@@ -324,14 +332,14 @@ namespace ScriptsEngine
             FindAllIncludedCSharpScript(scriptPath, ref filesList, ref errorwarnings);
             if (errorwarnings.Count > 0)
             {
-                return true;
+                return false;
             }
 
             List<string> assembliesList = new() { }; // List of assemblies.
             FindAllAssembliesIncludedInCSharpScripts(filesList, ref assembliesList, ref errorwarnings);
             if (errorwarnings.Count > 0)
             {
-                return true;
+                return false;
             }
 
             if (debug)
@@ -356,25 +364,39 @@ namespace ScriptsEngine
             }
 
             bool has_error = ManageCompileResult(results, ref errorwarnings);
+
             if (!has_error)
             {
                 assembly = results.CompiledAssembly;
+
+                int countRunMethod = FindMethod(assembly, "Run", out _);
+                if (countRunMethod != 1)
+                {
+                    assembly = null; // Assembly is not valid anymore
+                    has_error = true;
+                    errorwarnings.Add($"Error: found {countRunMethod} Run method in the Assemby");
+                }
             }
-            return has_error;
+
+            return !has_error;
         }
 
-        public static bool ExecuteScript(Assembly assembly, string methodName, out object scriptInstance, out string error)
+        /// <summary>
+        /// Looks into the assembly and count how many methods with name {methodName} exists in all classes
+        /// </summary>
+        /// <param name="assembly">Assembly where look into</param>
+        /// <param name="methodName">Method to be found</param>
+        /// <param name="foundMethod">Method object found</param>
+        /// <returns></returns>
+        private static int FindMethod(Assembly assembly, string methodName, out MethodInfo foundMethod)
         {
-            scriptInstance = null;
-            error = "";
-
             // This is important for methods visibility. Check if all of these flags are really needed.
             BindingFlags bf = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod;
 
-            MethodInfo run = null;
+            foundMethod = null;
+            int methodsCount = 0;
 
             // Search trough all methods and finds Run then calls it
-            int runMethodsFound = 0;
             foreach (Type mt in assembly.GetTypes())
             {
                 if (mt != null)
@@ -382,17 +404,38 @@ namespace ScriptsEngine
                     MethodInfo method = mt.GetMethod(methodName, bf);
                     if (method != null)
                     {
-                        run = method;
-                        runMethodsFound++;
-                        if (runMethodsFound > 1)
-                        {
-                            error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
-                            //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                            //throw new Exception(error);
-                            return false;
-                        }
+                        foundMethod = method;
+                        methodsCount++;
                     }
                 }
+            }
+
+            // If found more than 1 method function fails and will return a null method
+            if (methodsCount > 1) foundMethod = null;
+
+            return methodsCount;
+        }
+
+
+        /// <summary>
+        /// This function will start the script execution
+        /// </summary>
+        /// <param name="assembly">Assambly that contains the script</param>
+        /// <param name="scriptInstance">Instance of the script class</param>
+        /// <param name="error">Errors</param>
+        /// <returns>true if script started</returns>
+        public static bool ExecuteScript(Assembly assembly, out object scriptInstance, out string error)
+        {
+            string methodName = "Run";
+            scriptInstance = null;
+            error = "";
+
+            if (FindMethod(assembly, methodName, out MethodInfo run) > 1)
+            {
+                error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
+                //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
+                //throw new Exception(error);
+                return false;
             }
 
             // If Run method does not exists would be rised an exception later but better to throw a
@@ -412,41 +455,24 @@ namespace ScriptsEngine
             return true;
         }
 
-
+        /// <summary>
+        /// This function calls a method of the script class
+        /// </summary>
+        /// <param name="assembly">Assambly that contains the script</param>
+        /// <param name="scriptInstance">Instance of the script class</param>
+        /// <param name="methodName">Method name</param>
+        /// <param name="error">error founds</param>
+        /// <returns>false on errors</returns>
         public static bool CallScriptMethod(Assembly assembly, object scriptInstance, string methodName, out string error)
         {
             error = "";
-            if (scriptInstance == null)
+
+            if (FindMethod(assembly, methodName, out MethodInfo run) > 1)
             {
-                error = "Missing script istance";
+                error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
+                //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
+                //throw new Exception(error);
                 return false;
-            }
-
-            // This is important for methods visibility. Check if all of these flags are really needed.
-            BindingFlags bf = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod;
-
-            MethodInfo run = null;
-
-            // Search trough all methods and finds Run then calls it
-            int runMethodsFound = 0;
-            foreach (Type mt in assembly.GetTypes())
-            {
-                if (mt != null)
-                {
-                    MethodInfo method = mt.GetMethod(methodName, bf);
-                    if (method != null)
-                    {
-                        run = method;
-                        runMethodsFound++;
-                        if (runMethodsFound > 1)
-                        {
-                            error += $"Found more than one 'public void {methodName}' method in script.\nMust be only one {methodName} method.";
-                            //throw new Microsoft.Scripting.SyntaxErrorException(error, null, new SourceSpan(), 0, Severity.FatalError);
-                            //throw new Exception(error);
-                            return false;
-                        }
-                    }
-                }
             }
 
             // If Run method does not exists would be rised an exception later but better to throw a
@@ -459,6 +485,7 @@ namespace ScriptsEngine
                 return false;
             }
 
+            // Calls the method
             run.Invoke(scriptInstance, null);
             return true;
         }
