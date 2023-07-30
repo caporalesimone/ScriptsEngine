@@ -15,7 +15,7 @@ namespace ScriptsEngine
         /// </summary>
         /// <param name="path">Path on filesystem of the script</param>
         /// <returns></returns>
-        public IScript CreateScript(string path)
+        public Script CreateScript(string path)
         {
             if (path == null) return null;
             if (!File.Exists(path)) return null;
@@ -23,7 +23,7 @@ namespace ScriptsEngine
             path = Path.GetFullPath(path); // Converts a possible relative path into an absolute path
             string ext = Path.GetExtension(path);
 
-            IScript ret;
+            Script ret;
 
             switch (ext)
             {

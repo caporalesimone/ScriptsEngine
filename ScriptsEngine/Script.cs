@@ -25,7 +25,7 @@ namespace ScriptsEngine
     /// <summary>
     /// Abstract class of a script. All scripts must inherit from it
     /// </summary>
-    public abstract class IScript // : IScript
+    public abstract class Script 
     {
         /// <summary>
         /// Type of the script
@@ -65,7 +65,7 @@ namespace ScriptsEngine
         /// Abstract Script Contructor
         /// </summary>
         /// <param name="path">Script path</param>
-        public IScript(string path)
+        public Script(string path)
         {
             Type = EScriptType.UNKNOWN;
             FullPath = path;
@@ -97,17 +97,17 @@ namespace ScriptsEngine
         /// This method executes the script in a sepatate thread
         /// </summary>
         /// <returns></returns>
-        public void ExecuteScriptAsync()
+        public void RunScriptAsync()
         {
             LastExecutionTime = DateTime.Now;
-            ExecuteScritpAsycInternal();
+            RunScritpAsycInternal();
         }
 
         /// <summary>
         /// Internal implementation of the ExecuteScriptAsync Method
         /// </summary>
         /// <returns></returns>
-        protected abstract void ExecuteScritpAsycInternal();
+        protected abstract void RunScritpAsycInternal();
 
         /// <summary>
         /// Stops the execution of the script

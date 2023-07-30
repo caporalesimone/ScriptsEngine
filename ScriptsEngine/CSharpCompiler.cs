@@ -9,8 +9,11 @@ using System;
 
 namespace ScriptsEngine
 {
-    public class CSharpCompiler
+    public static class CSharpCompiler
     {
+        private const string START_METHOD_NAME = "Run";
+        private const string STOP_METHOD_NAME = "StopScript";
+
         private static CompilerParameters CompilerSettings(bool IncludeDebugInformation, List<string> assemblies)
         {
             CompilerParameters parameters = new();
@@ -370,13 +373,13 @@ namespace ScriptsEngine
             {
                 assembly = results.CompiledAssembly;
 
-                int countRunMethod = FindMethod(assembly, "Run", out runMethod);
+                int countRunMethod = FindMethod(assembly, START_METHOD_NAME, out runMethod);
                 if (countRunMethod != 1)
                 {
                     assembly = null; // Assembly is not valid anymore
                     runMethod = null; // Run method is not valid anymore
                     has_error = true;
-                    errorwarnings.Add($"Error: found {countRunMethod} Run method in the Assemby");
+                    errorwarnings.Add($"Error: found {countRunMethod} {START_METHOD_NAME} method in the Assemby");
                 }
             }
 
@@ -481,5 +484,15 @@ namespace ScriptsEngine
             }
         }
 
+        /// <summary>
+        /// Tries to calls the StopScript Method of the script
+        /// </summary>
+        /// <param name="assembly">Assambly that contains the script</param>
+        /// <param name="scriptInstance">Instance of the script class</param>
+        /// <param name="error">error founds</param>
+        public static void CallStopScriptMethod(Assembly assembly, object scriptInstance, out string error)
+        {
+            CallScriptMethodByName(assembly, scriptInstance, STOP_METHOD_NAME, out error);
+        }
     }
 }

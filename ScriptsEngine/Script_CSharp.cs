@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ScriptsEngine
 {
-    public class CSharpScript : IScript
+    public class CSharpScript : Script
     {
         private Assembly m_assembly = null;
         private object m_scriptInstance = null;
@@ -52,7 +52,7 @@ namespace ScriptsEngine
             } ).Start();
         }
 
-        protected override void ExecuteScritpAsycInternal()
+        protected override void RunScritpAsycInternal()
         {
             if (m_assembly == null) return;
 
@@ -83,7 +83,7 @@ namespace ScriptsEngine
             new Thread(() =>
             {
                 // Now a new thread will be created and will call the Stop method of the script
-                var stop_thread = new Thread(() => CSharpCompiler.CallScriptMethodByName(m_assembly, m_scriptInstance, "Stop", out _));
+                var stop_thread = new Thread(() => CSharpCompiler.CallStopScriptMethod(m_assembly, m_scriptInstance, out _));
                 stop_thread.Start();
 
                 /*

@@ -54,7 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IScript.cs" />
+    <Compile Include="Script.cs" />
     <Compile Include="to_be_removed\Assistant.cs" />
     <Compile Include="CSharpCompiler.cs" />
     <Compile Include="to_be_removed\Misc.cs" />
