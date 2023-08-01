@@ -6,6 +6,7 @@ using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System;
+using System.Diagnostics;
 
 namespace ScriptsEngine
 {
@@ -310,6 +311,49 @@ namespace ScriptsEngine
         }
         */
 
+        /// <summary>
+        /// Validates the main script if contains the Run method and warn if the StopScript is missing.
+        /// </summary>
+        /// <param name="scriptPath"></param>
+        /// <param name="errorwarnings"></param>
+        /// <returns></returns>
+        public static bool ValidateMainScript(string scriptPath, out List<string> errorwarnings)
+        {
+            bool run_found = false;
+            bool stop_found = false;
+
+            errorwarnings = new();
+
+            string start_pattern = @$"\s*void\s+{START_METHOD_NAME}\s*\(\s*\)";
+            string stop_pattern = @$"\s*void\s+{STOP_METHOD_NAME}\s*\(\s*\)";
+
+
+            foreach (string line in File.ReadAllLines(scriptPath))
+            {
+                if (Regex.Match(line, start_pattern).Success == true)
+                {
+                    run_found = true;
+                }
+
+                if (Regex.Match(line, stop_pattern).Success == true)
+                {
+                   stop_found = true;
+                }
+            }
+
+            if (run_found == false) 
+            {
+                errorwarnings.Add($"Error - Missing required method {START_METHOD_NAME}");
+            }
+
+            if (stop_found == false)
+            {
+                errorwarnings.Add($"Warning - Missing optional method {STOP_METHOD_NAME}");
+            }
+
+            return run_found;
+        }
+
         // https://medium.com/swlh/replace-codedom-with-roslyn-but-bin-roslyn-csc-exe-not-found-6a5dd9290bf2
         // https://stackoverflow.com/questions/20018979/how-can-i-target-a-specific-language-version-using-codedom
         // https://docs.microsoft.com/it-it/dotnet/api/microsoft.csharp.csharpcodeprovider.-ctor?view=net-5.0
@@ -373,6 +417,7 @@ namespace ScriptsEngine
             {
                 assembly = results.CompiledAssembly;
 
+                // Looking for multiple Run Methods
                 int countRunMethod = FindMethod(assembly, START_METHOD_NAME, out runMethod);
                 if (countRunMethod != 1)
                 {

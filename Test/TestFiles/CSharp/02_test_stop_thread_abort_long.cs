@@ -24,7 +24,7 @@ namespace CSharpScriptsExamples
             }
         }
 
-        public void Stop()
+        public void StopScript()
         {
             Console.WriteLine("HelloWorld - Stop Method - Now will sleep 200 seconds, that is more then 10 of abort so it will be killed before ending");
             int cnt = 100; // 200 seconds

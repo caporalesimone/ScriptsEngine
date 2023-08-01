@@ -27,6 +27,7 @@ namespace ScriptsEngine
     /// </summary>
     public abstract class Script 
     {
+        #region properties
         /// <summary>
         /// Type of the script
         /// </summary>
@@ -60,7 +61,7 @@ namespace ScriptsEngine
         /// Thread that contains the script execution
         /// </summary>
         protected Thread m_ScriptExecutionThread = null;
-
+		#endregion
         /// <summary>
         /// Abstract Script Contructor
         /// </summary>

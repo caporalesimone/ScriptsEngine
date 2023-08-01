@@ -22,7 +22,7 @@ namespace CSharpScriptsExamples
             }
         }
 
-        public void Stop()
+        public void StopScript()
         {
             Console.WriteLine("HelloWorld - Stop Method called. Now stop ends immediately without terminating Run");
         }

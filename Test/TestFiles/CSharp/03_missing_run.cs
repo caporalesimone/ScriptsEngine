@@ -14,7 +14,7 @@ namespace CSharpScriptsExamples
         Console.WriteLine("HelloWorld - Run Method");
     }
 
-    public void Stop()
+    public void StopScript()
     {
        Console.WriteLine("HelloWorld - Run Method");
     }

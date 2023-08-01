@@ -9,12 +9,12 @@ namespace CSharpScriptsExamples
         Console.WriteLine("HelloWorld - Constructor");
     }
     
-    public void Run()
+    public void     Run   (   )
     {
         Console.WriteLine("HelloWorld - Run Method");
     }
 
-    public void Stop()
+    public void StopScript()
     {
         Console.WriteLine("HelloWorld - Stop Method");
     }

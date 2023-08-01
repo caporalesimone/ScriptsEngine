@@ -12,15 +12,15 @@ namespace Test
             ScriptFactory factory = new ScriptFactory();
 
             /*
-            IScript fail = factory.CreateScript("err");
+            Script fail = factory.CreateScript("err");
             if (fail == null) { Console.WriteLine("Error!"); }
             */
 
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
-            Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_graceful.cs");
-            //IScript csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
+            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
+            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
+            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
+            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_graceful.cs");
+            Script csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
             
             csharp.CompileAsync();
             while (!Console.KeyAvailable)

@@ -39,8 +39,16 @@ namespace ScriptsEngine
 
             m_ScriptStatus = EScriptStatus.COMPILING;
 
-            new Thread( () => { 
-                bool compile = CSharpCompiler.CompileFromFile(FullPath, true, out List<string> errorwarnings, out m_assembly, out m_run_method);
+            new Thread( () => {
+
+                bool validate = CSharpCompiler.ValidateMainScript(FullPath, out List<string> errorwarnings);
+                if (!validate)
+                {
+                    m_ScriptStatus = EScriptStatus.ERROR;
+                    return;
+                }
+
+                bool compile = CSharpCompiler.CompileFromFile(FullPath, true, out errorwarnings, out m_assembly, out m_run_method);
                 if (compile) 
                 { 
                     m_ScriptStatus = EScriptStatus.READY; 

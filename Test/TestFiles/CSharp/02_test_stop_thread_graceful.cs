@@ -21,7 +21,7 @@ namespace CSharpScriptsExamples
             Console.WriteLine("HelloWorld - Terminated");
         }
 
-        public void Stop()
+        public void StopScript()
         {
             Console.WriteLine("HelloWorld - Stop Method - sending a stop to main loop and wait 3 seconds for test");
             m_Run = false;
