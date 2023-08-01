@@ -9,6 +9,20 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            ScriptsLogger a = new ScriptsLogger();
+
+            a.AddLog(LogEntry.E_LogType.Warning, "AAAAAA");
+            a.AddLog(LogEntry.E_LogType.Warning, "BBBBBB");
+
+            foreach (var it in a) 
+            {
+                Console.WriteLine(it.LogMessage);
+            }
+
+
+
+
+
             ScriptFactory factory = new ScriptFactory();
 
             /*
