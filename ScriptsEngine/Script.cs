@@ -6,20 +6,20 @@ namespace ScriptsEngine
 {
     public enum EScriptType : byte
     {
-        UNKNOWN = 0,
-        CSHARP = 1,
-        PYTHON = 2,
-        UOSTEAM = 3,
+        Unknown = 0,
+        CSharp = 1,
+        Python = 2,
+        UOSteam = 3,
     }
 
     public enum EScriptStatus : byte
     {
-        NOT_COMPILED,
-        COMPILING,
-        READY,
-        RUNNING,
-        REQUESTED_TERMINATE,
-        ERROR,
+        NotCompiled,
+        Compiling,
+        Ready,
+        Running,
+        ReaquestedTerminate,
+        Error,
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ namespace ScriptsEngine
         /// <param name="path">Script path</param>
         public Script(string path)
         {
-            Type = EScriptType.UNKNOWN;
+            Type = EScriptType.Unknown;
             FullPath = path;
             m_ScriptExecutionThread = null;
         }

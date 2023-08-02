@@ -9,20 +9,6 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            ScriptsLogger a = new ScriptsLogger();
-
-            a.AddLog(LogEntry.E_LogType.Warning, "AAAAAA");
-            a.AddLog(LogEntry.E_LogType.Warning, "BBBBBB");
-
-            foreach (var it in a) 
-            {
-                Console.WriteLine(it.LogMessage);
-            }
-
-
-
-
-
             ScriptFactory factory = new ScriptFactory();
 
             /*
@@ -30,23 +16,30 @@ namespace Test
             if (fail == null) { Console.WriteLine("Error!"); }
             */
 
-            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
+            Script csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
             //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
             //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");
             //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_graceful.cs");
-            Script csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
-            
+            //Script csharp = factory.CreateScript(@"TestFiles\CSharp\03_missing_run.cs");
+
+            if (csharp == null)
+            {
+                Console.WriteLine("Error");
+                Console.ReadKey();
+                return;
+            }
+
             csharp.CompileAsync();
             while (!Console.KeyAvailable)
             {
-                if (csharp.ScriptStatus == EScriptStatus.ERROR)
+                if (csharp.ScriptStatus == EScriptStatus.Error)
                 {
                     Console.WriteLine("Compile failed. Press a key to terminate.");
                     Console.ReadKey();
                     return;
                 }
 
-                if (csharp.ScriptStatus == EScriptStatus.READY) 
+                if (csharp.ScriptStatus == EScriptStatus.Ready) 
                 {
                     break;
                 }
@@ -67,7 +60,7 @@ namespace Test
             while (!Console.KeyAvailable)
             {
                 Console.WriteLine($"Script State: {csharp.ScriptStatus}");
-                if (csharp.ScriptStatus == EScriptStatus.READY) break;
+                if (csharp.ScriptStatus == EScriptStatus.Ready) break;
                 System.Threading.Thread.Sleep(200);
             }
 

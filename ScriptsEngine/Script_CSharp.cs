@@ -12,13 +12,16 @@ namespace ScriptsEngine
         private Assembly m_assembly = null;
         private object m_scriptInstance = null;
         private MethodInfo m_run_method = null;
-        private EScriptStatus m_ScriptStatus = EScriptStatus.NOT_COMPILED;
+        private EScriptStatus m_ScriptStatus = EScriptStatus.NotCompiled;
+
+        private ScriptLogger m_Logger;
 
         public CSharpScript(string path) : base (path)
         {
-            Type = EScriptType.CSHARP;
+            Type = EScriptType.CSharp;
             m_assembly = null;
-            m_ScriptStatus = EScriptStatus.NOT_COMPILED;
+            m_ScriptStatus = EScriptStatus.NotCompiled;
+            m_Logger = new ScriptLogger();
         }
 
         public override EScriptStatus ScriptStatus { get => m_ScriptStatus; }
@@ -29,33 +32,24 @@ namespace ScriptsEngine
         /// <returns>returns true if validates</returns>
         public override bool ValidateScript()
         {
-// TODO
-            return true;
+            return CSharpCompiler.ValidateMainScript(FullPath, ref m_Logger);
         }
 
         protected override void CompileAsyncInternal()
         {
             if (m_assembly != null) { m_assembly = null; }
 
-            m_ScriptStatus = EScriptStatus.COMPILING;
+            m_ScriptStatus = EScriptStatus.Compiling;
 
             new Thread( () => {
-
-                bool validate = CSharpCompiler.ValidateMainScript(FullPath, out List<string> errorwarnings);
-                if (!validate)
-                {
-                    m_ScriptStatus = EScriptStatus.ERROR;
-                    return;
-                }
-
-                bool compile = CSharpCompiler.CompileFromFile(FullPath, true, out errorwarnings, out m_assembly, out m_run_method);
+                bool compile = CSharpCompiler.CompileFromFile(FullPath, true, ref m_Logger, out m_assembly, out m_run_method);
                 if (compile) 
                 { 
-                    m_ScriptStatus = EScriptStatus.READY; 
+                    m_ScriptStatus = EScriptStatus.Ready; 
                 }
                 else
                 {
-                    m_ScriptStatus = EScriptStatus.ERROR;
+                    m_ScriptStatus = EScriptStatus.Error;
                 }
             } ).Start();
         }
@@ -69,7 +63,7 @@ namespace ScriptsEngine
 
             m_ScriptExecutionThread = new Thread(() =>
             {
-                m_ScriptStatus = EScriptStatus.RUNNING;
+                m_ScriptStatus = EScriptStatus.Running;
                 // This is a blocking call that ends when the Run method ends.
                 CSharpCompiler.CallScriptMethod(m_assembly, m_scriptInstance, m_run_method, out _);
                 StopScriptAsync();
@@ -84,9 +78,9 @@ namespace ScriptsEngine
             // ends gracefully. If this not happen within 10 seconds, who is still running will be aborted
 
             if (m_ScriptExecutionThread == null) return;
-            if (m_ScriptStatus != EScriptStatus.RUNNING) return;
+            if (m_ScriptStatus != EScriptStatus.Running) return;
 
-            m_ScriptStatus = EScriptStatus.REQUESTED_TERMINATE;
+            m_ScriptStatus = EScriptStatus.ReaquestedTerminate;
 
             new Thread(() =>
             {
@@ -94,14 +88,7 @@ namespace ScriptsEngine
                 var stop_thread = new Thread(() => CSharpCompiler.CallStopScriptMethod(m_assembly, m_scriptInstance, out _));
                 stop_thread.Start();
 
-                /*
-                Console.WriteLine($"--------------------------------------");
-                Console.WriteLine($"Main thread: {m_ScriptExecutionThread.ThreadState}");
-                Console.WriteLine($"Stop thread: {stop_thread.ThreadState}");
-                Console.WriteLine($"--------------------------------------");
-                */
-
-                // Let's wait gracefully the end of the thread for at least 10 secons
+                // Let's wait gracefully the end of the thread for at least 10 seconds
                 var timeout = new Stopwatch();
                 timeout.Start();
 
@@ -114,18 +101,8 @@ namespace ScriptsEngine
                             )
                     )
                 {
-                    //Console.WriteLine($"Main thread: {m_ScriptExecutionThread.ThreadState} - Elapsed {timeout.ElapsedMilliseconds}");
-                    //Console.WriteLine($"Stop thread: {stop_thread.ThreadState}");
                     System.Threading.Thread.Sleep(100);
                 }
-
-                /*
-                Console.WriteLine($"--------------------------------------");
-                Console.WriteLine($"Elapsed: {timeout.ElapsedMilliseconds}");
-                Console.WriteLine($"Main thread: {m_ScriptExecutionThread.ThreadState}");
-                Console.WriteLine($"Stop thread: {stop_thread.ThreadState}");
-                Console.WriteLine($"--------------------------------------");
-                */
 
                 // If more than 10 seconds elapsed then the unstopped thread will be aborted
                 if (timeout.ElapsedMilliseconds >= 10000)
@@ -134,29 +111,19 @@ namespace ScriptsEngine
                     {
                         m_ScriptExecutionThread.Abort();
                         m_ScriptExecutionThread.Join(1000); // Just to be shure thread ended
-                        //Console.WriteLine("Aborted main thread");
                     }
 
                     if (stop_thread.ThreadState != System.Threading.ThreadState.Stopped)
                     {
                         stop_thread.Abort();
                         m_ScriptExecutionThread.Join(1000); // Just to be shure thread ended
-                        //Console.WriteLine("Aborted stop thread");
                     }
                 }
 
-                /*
-                Console.WriteLine($"--------------------------------------");
-                Console.WriteLine($"Elapsed: {timeout.ElapsedMilliseconds}");
-                Console.WriteLine($"Main thread: {m_ScriptExecutionThread.ThreadState}");
-                Console.WriteLine($"Stop thread: {stop_thread.ThreadState}");
-                Console.WriteLine($"--------------------------------------");
-                */
                 timeout.Stop();
-                //Console.WriteLine("Stop procedure terminated");
 
                 m_ScriptExecutionThread = null;
-                m_ScriptStatus = EScriptStatus.READY;
+                m_ScriptStatus = EScriptStatus.Ready;
             }).Start();
         }
     }
