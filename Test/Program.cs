@@ -11,11 +11,7 @@ namespace Test
         {
             ScriptFactory factory = new ScriptFactory();
 
-            /*
-            Script fail = factory.CreateScript("err");
-            if (fail == null) { Console.WriteLine("Error!"); }
-            */
-
+            //Script csharp = factory.CreateScript(@"FileNotExists.cs");
             Script csharp = factory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs");
             //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort.cs");
             //Script csharp = factory.CreateScript(@"TestFiles\CSharp\02_test_stop_thread_abort_long.cs");

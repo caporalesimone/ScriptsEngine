@@ -336,7 +336,6 @@ namespace ScriptsEngine
             run.Invoke(scriptInstance, null);
             return true;
         }
-
         /*
         public bool CompileFromText(string source, out List<string> errorwarnings, out Assembly assembly)
         {
