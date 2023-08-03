@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ScriptsEngine")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("CNH Industrial")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ScriptsEngine")]
-[assembly: AssemblyCopyright("Copyright © CNH Industrial 2023")]
+[assembly: AssemblyCopyright("CaporaleSimone© 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

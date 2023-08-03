@@ -383,6 +383,12 @@ namespace ScriptsEngine
             string start_pattern = @$"\s*void\s+{START_METHOD_NAME}\s*\(\s*\)";
             string stop_pattern = @$"\s*void\s+{STOP_METHOD_NAME}\s*\(\s*\)";
 
+            if (!File.Exists(scriptPath))
+            {
+                log.AddLog(LogEntry.ELogType.Error, $"Unable to find the script {scriptPath}");
+                return false;
+            }
+
             foreach (string line in File.ReadAllLines(scriptPath))
             {
                 if (Regex.Match(line, start_pattern).Success == true)
