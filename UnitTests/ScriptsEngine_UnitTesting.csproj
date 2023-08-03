@@ -49,6 +49,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestScripts\CSharp\CSharpCompiler_Scripts\ValidateMainScript_Test_01.cs" />
     <Compile Include="Tests_Script_CSharp.cs" />
     <Compile Include="Tests_CSharpCompiler.cs" />
     <Compile Include="Tests_ScriptFactory.cs" />
@@ -75,5 +76,18 @@
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets'))" />
   </Target>
+
+  <PropertyGroup>
+    <TestScripsFolder>TestScripts</TestScripsFolder>
+  </PropertyGroup>
+
+  <Target Name="CopyTestScriptsFolder" AfterTargets="Build">
+    <ItemGroup>
+      <MyFolderFiles Include="$(ProjectDir)$(TestScripsFolder)\**" />
+    </ItemGroup>
+    <MakeDir Directories="$(TargetDir)$(TestScripsFolder)" />
+    <Copy SourceFiles="@(MyFolderFiles)" DestinationFiles="@(MyFolderFiles->'$(TargetDir)$(TestScripsFolder)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
   <Import Project="..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" />
 </Project>
