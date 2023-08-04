@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScriptsEngine.Logger;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -14,14 +15,14 @@ namespace ScriptsEngine
         private MethodInfo m_run_method = null;
         private EScriptStatus m_ScriptStatus = EScriptStatus.NotCompiled;
 
-        private ScriptLogger m_Logger;
+        private SELogger m_Logger;
 
         public CSharpScript(string path) : base (path)
         {
             Type = EScriptType.CSharp;
             m_assembly = null;
             m_ScriptStatus = EScriptStatus.NotCompiled;
-            m_Logger = new ScriptLogger();
+            m_Logger = new SELogger(logToFile: false);
         }
 
         public override EScriptStatus ScriptStatus { get => m_ScriptStatus; }

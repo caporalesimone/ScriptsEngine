@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Script.cs" />
-    <Compile Include="ScriptLogger.cs" />
+    <Compile Include="ScriptsEngineLogger.cs" />
     <Compile Include="to_be_removed\Assistant.cs" />
     <Compile Include="CSharpCompiler.cs" />
     <Compile Include="to_be_removed\Misc.cs" />

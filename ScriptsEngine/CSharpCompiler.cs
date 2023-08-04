@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System;
 using System.Diagnostics;
+using ScriptsEngine.Logger;
 
 namespace ScriptsEngine
 {
@@ -89,11 +90,11 @@ namespace ScriptsEngine
         /// <param name="results"></param>
         /// <param name="log"></param>
         /// <returns>True if compiler errors exists</returns>
-        private static bool ManageCompileResult(CompilerResults results, ref ScriptLogger log)
+        private static bool ManageCompileResult(CompilerResults results, ref SELogger log)
         {
             foreach (CompilerError error in results.Errors)
             {
-                LogEntry.ELogType logType = error.IsWarning ? LogEntry.ELogType.Warning : LogEntry.ELogType.Error;
+                LogLevel logType = error.IsWarning ? LogLevel.Warning : LogLevel.Error;
 
                 log.AddLog(logType, $"Compiler: {error.ErrorNumber} at {error.Line}: {error.ErrorText} in file {error.FileName}");
             }
@@ -163,7 +164,7 @@ namespace ScriptsEngine
         /// <param name="filesList">Full path of all files where search for the directive</param>
         /// <param name="assemblies">List of all assemblies that must be inclide during the compile process</param>
         /// <param name="errorwarnings">List of error and warnings</param>
-        private static bool FindAllAssembliesIncludedInCSharpScripts(List<string> filesList, ref List<string> assemblies, ref ScriptLogger log)
+        private static bool FindAllAssembliesIncludedInCSharpScripts(List<string> filesList, ref List<string> assemblies, ref SELogger log)
         {
             const string directive = "//#assembly";
 
@@ -172,7 +173,7 @@ namespace ScriptsEngine
                 List<string> foundDirectives = new();
                 if (!FindDirectivesInFile(filename, directive, ref foundDirectives))
                 {
-                    log.AddLog(LogEntry.ELogType.Error, $"Error on directive {directive}. Unable to find {filename}.");
+                    log.AddLog(LogLevel.Error, $"Error on directive {directive}. Unable to find {filename}.");
                     return false;
                 }
 
@@ -188,7 +189,7 @@ namespace ScriptsEngine
                 {
                     if (!ExtractFileNameFromDirective(line, basepath, true, out string assembly))
                     {
-                        log.AddLog(LogEntry.ELogType.Error, $"Error on RE Directive: {directive}.");
+                        log.AddLog(LogLevel.Error, $"Error on RE Directive: {directive}.");
                         return false;
                     }
                     assemblies.Add(assembly);
@@ -205,7 +206,7 @@ namespace ScriptsEngine
         /// <param name="sourceFile">Full path of the source file</param>
         /// <param name="filesList">List of all files that must be compiled (it's a recursive list)</param>
         /// <param name="errorwarnings">List of error and warnings</param>
-        private static bool FindAllIncludedCSharpScript(string sourceFile, ref List<string> filesList, ref ScriptLogger log)
+        private static bool FindAllIncludedCSharpScript(string sourceFile, ref List<string> filesList, ref SELogger log)
         {
             const string directive = "//#import";
 
@@ -213,7 +214,7 @@ namespace ScriptsEngine
             List<string> imports = new();
             if (!FindDirectivesInFile(sourceFile, directive, ref imports))
             {
-                log.AddLog(LogEntry.ELogType.Error, $"Error on directive {directive}. Unable to find {sourceFile}.");
+                log.AddLog(LogLevel.Error, $"Error on directive {directive}. Unable to find {sourceFile}.");
                 return false;
             }
 
@@ -227,7 +228,7 @@ namespace ScriptsEngine
             {
                 if (!ExtractFileNameFromDirective(line, basepath, false, out string file))
                 {
-                    log.AddLog(LogEntry.ELogType.Error, $"Error on RE Directive: {directive}.");
+                    log.AddLog(LogLevel.Error, $"Error on RE Directive: {directive}.");
                     return false;
                 }
 
@@ -375,7 +376,7 @@ namespace ScriptsEngine
         /// <param name="scriptPath"></param>
         /// <param name="errorwarnings"></param>
         /// <returns></returns>
-        public static bool ValidateMainScript(string scriptPath, ref ScriptLogger log)
+        public static bool ValidateMainScript(string scriptPath, ref SELogger log)
         {
             bool run_found = false;
             bool stop_found = false;
@@ -385,7 +386,7 @@ namespace ScriptsEngine
 
             if (!File.Exists(scriptPath))
             {
-                log.AddLog(LogEntry.ELogType.Error, $"Unable to find the script {scriptPath}");
+                log.AddLog(LogLevel.Error, $"Unable to find the script {scriptPath}");
                 return false;
             }
 
@@ -404,12 +405,12 @@ namespace ScriptsEngine
 
             if (run_found == false)
             {
-                log.AddLog(LogEntry.ELogType.Error, $"Missing required method 'public void {START_METHOD_NAME}()'");
+                log.AddLog(LogLevel.Error, $"Missing required method 'public void {START_METHOD_NAME}()'");
             }
 
             if (stop_found == false)
             {
-                log.AddLog(LogEntry.ELogType.Warning, $"Missing optional method 'public void {STOP_METHOD_NAME}()'");
+                log.AddLog(LogLevel.Warning, $"Missing optional method 'public void {STOP_METHOD_NAME}()'");
             }
 
             return run_found;
@@ -429,9 +430,9 @@ namespace ScriptsEngine
         /// <param name="assembly">the output assembly</param>
         /// <param name="runMethod">the class containing the Run method of the script</param>
         /// <returns>false is build failed</returns>
-        public static bool CompileFromFile(string scriptPath, bool debug, ref ScriptLogger log, out Assembly assembly, out MethodInfo runMethod)
+        public static bool CompileFromFile(string scriptPath, bool debug, ref SELogger log, out Assembly assembly, out MethodInfo runMethod)
         {
-            log.AddLog(LogEntry.ELogType.Info, "Script build started.");
+            log.AddLog(LogLevel.Info, "Script build started.");
             assembly = null;
             runMethod = null;
 
@@ -454,11 +455,11 @@ namespace ScriptsEngine
 
             if (debug)
             {
-                log.AddLog(LogEntry.ELogType.Info, "Compiling C# Script in DEBUG " + Path.GetFileName(scriptPath));
+                log.AddLog(LogLevel.Info, "Compiling C# Script in DEBUG " + Path.GetFileName(scriptPath));
             } 
             else
             {
-                log.AddLog(LogEntry.ELogType.Info, "Compiling C# Script in RELEASE " + Path.GetFileName(scriptPath));
+                log.AddLog(LogLevel.Info, "Compiling C# Script in RELEASE " + Path.GetFileName(scriptPath));
             }
 
             DateTime start = DateTime.Now;
@@ -471,7 +472,7 @@ namespace ScriptsEngine
             CompilerResults results = m_provider.CompileAssemblyFromFile(m_compileParameters, filesList.ToArray()); // Compiling
 
             DateTime stop = DateTime.Now;
-            log.AddLog(LogEntry.ELogType.Info, "Script compiled in " + (stop - start).TotalMilliseconds.ToString("F0") + " ms");
+            log.AddLog(LogLevel.Info, "Script compiled in " + (stop - start).TotalMilliseconds.ToString("F0") + " ms");
 
 
             bool has_error = ManageCompileResult(results, ref log);
@@ -487,7 +488,7 @@ namespace ScriptsEngine
                     assembly = null; // Assembly is not valid anymore
                     runMethod = null; // Run method is not valid anymore
                     has_error = true;
-                    log.AddLog(LogEntry.ELogType.Error, $"Found {countRunMethod} {START_METHOD_NAME} method in the Assemby");
+                    log.AddLog(LogLevel.Error, $"Found {countRunMethod} {START_METHOD_NAME} method in the Assemby");
                 }
             }
 
