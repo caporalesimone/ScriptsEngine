@@ -15,6 +15,9 @@ namespace ScriptsEngine
         private MethodInfo m_run_method = null;
         private EScriptStatus m_ScriptStatus = EScriptStatus.NotCompiled;
 
+        private readonly bool m_compile_debug = true; // TODO Needs to be changed by the caller
+        private readonly string assemblies_cfg_path = ""; // TODO Needs to be set by the caller
+
         private SELogger m_Logger;
 
         public CSharpScript(string path) : base (path)
@@ -43,7 +46,7 @@ namespace ScriptsEngine
             m_ScriptStatus = EScriptStatus.Compiling;
 
             new Thread( () => {
-                bool compile = CSharpCompiler.CompileFromFile(FullPath, true, ref m_Logger, out m_assembly, out m_run_method);
+                bool compile = CSharpCompiler.CompileFromFile(FullPath, m_compile_debug, assemblies_cfg_path, ref m_Logger, out m_assembly, out m_run_method);
                 if (compile) 
                 { 
                     m_ScriptStatus = EScriptStatus.Ready; 
@@ -59,14 +62,14 @@ namespace ScriptsEngine
         {
             if (m_assembly == null) return;
 
-            m_scriptInstance = CSharpCompiler.CreateScriptInstance(m_assembly, m_run_method);
+            m_scriptInstance = CSharpCompiler.CreateScriptInstance(m_run_method);
             if (m_scriptInstance == null) return;
 
             m_ScriptExecutionThread = new Thread(() =>
             {
                 m_ScriptStatus = EScriptStatus.Running;
                 // This is a blocking call that ends when the Run method ends.
-                CSharpCompiler.CallScriptMethod(m_assembly, m_scriptInstance, m_run_method, out _);
+                CSharpCompiler.CallScriptMethod(m_scriptInstance, m_run_method, out _);
                 StopScriptAsync();
             });
 

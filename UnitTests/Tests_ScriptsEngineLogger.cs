@@ -55,7 +55,6 @@ namespace UnitTests
                 eventReceived.Set();
             });
 
-            // Act
             logger.AddLog(expectedLogLevel, expectedMessage);
 
             // Wait for the event to be received or timeout after 1 seconds

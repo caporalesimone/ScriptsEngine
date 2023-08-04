@@ -59,7 +59,6 @@
     <Compile Include="ScriptsEngineLogger.cs" />
     <Compile Include="to_be_removed\Assistant.cs" />
     <Compile Include="CSharpCompiler.cs" />
-    <Compile Include="to_be_removed\Misc.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

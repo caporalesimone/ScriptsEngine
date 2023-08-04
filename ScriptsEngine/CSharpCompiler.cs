@@ -17,10 +17,11 @@ namespace ScriptsEngine
         private const string STOP_METHOD_NAME = "StopScript";
 
         #region PrivateMethods
-        private static CompilerParameters CompilerSettings(bool IncludeDebugInformation, List<string> assemblies)
+        private static CompilerParameters CompilerSettings(bool IncludeDebugInformation, string Assemblies_cfg_path, List<string> assemblies)
         {
             CompilerParameters parameters = new();
-            List<string> assemblies_cfg = GetReferenceAssemblies(); // Gets all assemblies inside the Assemblies.cfg file
+
+            List<string> assemblies_cfg = ParseAssembliesConfigFile(Assemblies_cfg_path); // Gets all assemblies inside the Assemblies.cfg file
             List<string> allAssemblies = assemblies.Concat(assemblies_cfg).ToList(); // Merges asseblies found in assemblies.cfg with assemblies from directives
 
             foreach (string assembly in allAssemblies)
@@ -50,34 +51,45 @@ namespace ScriptsEngine
             IDictionary<string, string> IProviderOptions.AllOptions { get => _compilerOptions; }
             IDictionary<string, string> Options { set { _compilerOptions = value; } } // For Debug
         }
-        private static List<string> GetReferenceAssemblies()
+
+        /// <summary>
+        /// This function creates a list of assemblies that must be used during the build.
+        /// This list is created from a file called assemblies.cfg
+        /// The list contains per each line a file name
+        ///     if the filename is without the full path, will be considered to be in the executable folder
+        ///     if the filename has a full path will be taken that
+        ///     if the filename starts with a # will be considered a comment
+        /// </summary>
+        /// <param name="Assemblies_cfg_path">Path of the assemblies.cfg file</param>
+        /// <returns></returns>
+        private static List<string> ParseAssembliesConfigFile(string Assemblies_cfg_path)
         {
+            // If file does not exists return null
+            if (!File.Exists(Assemblies_cfg_path)) return null;
+
             List<string> assemblies = new();
+            using StreamReader sr = new(Assemblies_cfg_path);
+            string line;
 
-            string assemblies_cfg_path = Path.Combine(Assistant.Engine.RootPath, "Scripts", "Assemblies.cfg");
-
-            if (File.Exists(assemblies_cfg_path))
+            while ((line = sr.ReadLine()) != null)
             {
-                using StreamReader ip = new(assemblies_cfg_path);
-                string line;
-
-                while ((line = ip.ReadLine()) != null)
-                {
-                    if (line.Length > 0 && !line.StartsWith("#"))  // # means comment
-                        assemblies.Add(line);
-                }
+                if (line.Length > 0 && !line.StartsWith("#"))  // # means comment
+                    assemblies.Add(line);
             }
 
-            // Replace with full path of all assemblies that are in razor path
+            // For each entry, tries to add the base executable path and checks if exist. 
+            // If exists will replace the entry with the full path
             for (int i = 0; i < assemblies.Count; i++)
             {
-                string assembly_path = Path.Combine(Assistant.Engine.RootPath, assemblies[i]);
+                string assembly_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), assemblies[i]);
                 if (File.Exists(assembly_path))
                 {
                     assemblies[i] = assembly_path;
                 }
             }
+
             /*
+            // Better to add both in the assemblies.cfg file
             // Adding Razor and Ultima.dll as default
             assemblies.Add(Assistant.Engine.RootPath + Path.DirectorySeparatorChar + "RazorEnhanced.exe");
             assemblies.Add(Assistant.Engine.RootPath + Path.DirectorySeparatorChar + "Ultima.dll");
@@ -422,15 +434,16 @@ namespace ScriptsEngine
         // https://github.com/aspnet/RoslynCodeDomProvider/blob/main/src/Microsoft.CodeDom.Providers.DotNetCompilerPlatform/Util/IProviderOptions.cs
         // https://josephwoodward.co.uk/2016/12/in-memory-c-sharp-compilation-using-roslyn
         /// <summary>
-        /// This method Compiles the script and checks that Run method exists
+        /// This method Compiles the script
         /// </summary>
         /// <param name="scriptPath">Path of the script in the filesystem</param>
         /// <param name="debug">Compile debug or release</param>
-        /// <param name="errorwarnings">List or error and warnings</param>
+        /// <param name="assemblies_cfg_path"></param>
+        /// <param name="log">the logger</param>
         /// <param name="assembly">the output assembly</param>
         /// <param name="runMethod">the class containing the Run method of the script</param>
         /// <returns>false is build failed</returns>
-        public static bool CompileFromFile(string scriptPath, bool debug, ref SELogger log, out Assembly assembly, out MethodInfo runMethod)
+        public static bool CompileFromFile(string scriptPath, bool debug, string assemblies_cfg_path, ref SELogger log, out Assembly assembly, out MethodInfo runMethod)
         {
             log.AddLog(LogLevel.Info, "Script build started.");
             assembly = null;
@@ -442,7 +455,7 @@ namespace ScriptsEngine
 
             bool bRet = FindAllIncludedCSharpScript(scriptPath, ref filesList, ref log);
             if (bRet == false)
-            { 
+            {
                 return false;
             }
 
@@ -456,7 +469,7 @@ namespace ScriptsEngine
             if (debug)
             {
                 log.AddLog(LogLevel.Info, "Compiling C# Script in DEBUG " + Path.GetFileName(scriptPath));
-            } 
+            }
             else
             {
                 log.AddLog(LogLevel.Info, "Compiling C# Script in RELEASE " + Path.GetFileName(scriptPath));
@@ -466,14 +479,15 @@ namespace ScriptsEngine
 
             CompilerOptions m_opt = new();
             CSharpCodeProvider m_provider = new(m_opt);
-            CompilerParameters m_compileParameters = CompilerSettings(true, assembliesList);
+
+            if (!File.Exists(assemblies_cfg_path)) { log.AddLog(LogLevel.Warning, "assemblies.cfg file is missing. Can cause problems on scripts execution"); }
+            CompilerParameters m_compileParameters = CompilerSettings(true, assemblies_cfg_path, assembliesList);
 
             m_compileParameters.IncludeDebugInformation = debug;
             CompilerResults results = m_provider.CompileAssemblyFromFile(m_compileParameters, filesList.ToArray()); // Compiling
 
             DateTime stop = DateTime.Now;
             log.AddLog(LogLevel.Info, "Script compiled in " + (stop - start).TotalMilliseconds.ToString("F0") + " ms");
-
 
             bool has_error = ManageCompileResult(results, ref log);
 
@@ -500,7 +514,7 @@ namespace ScriptsEngine
         /// <param name="assembly">Asembly of the class</param>
         /// <param name="runMethod">Method contained in the class that needs to be instantiated</param>
         /// <returns>The instance</returns>
-        public static object CreateScriptInstance(Assembly assembly, MethodInfo runMethod)
+        public static object CreateScriptInstance(MethodInfo runMethod)
         {
             return Activator.CreateInstance(runMethod.DeclaringType);
         }
@@ -511,7 +525,7 @@ namespace ScriptsEngine
         /// <param name="scriptInstance">Instance of the script class</param>
         /// <param name="method">Method that will be called</param>
         /// <param name="error">error founds</param>
-        public static void CallScriptMethod(Assembly assembly, object scriptInstance, MethodInfo method, out string error)
+        public static void CallScriptMethod(object scriptInstance, MethodInfo method, out string error)
         {
             error = "";
 

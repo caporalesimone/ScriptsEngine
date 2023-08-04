@@ -115,16 +115,7 @@ namespace ScriptsEngine.Logger
             }
         }
     }
-
-   
-
 }
-
-
-
-
-
-
 
 
 /*
