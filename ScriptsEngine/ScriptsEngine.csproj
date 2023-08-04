@@ -57,7 +57,6 @@
   <ItemGroup>
     <Compile Include="Script.cs" />
     <Compile Include="ScriptsEngineLogger.cs" />
-    <Compile Include="to_be_removed\Assistant.cs" />
     <Compile Include="CSharpCompiler.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
