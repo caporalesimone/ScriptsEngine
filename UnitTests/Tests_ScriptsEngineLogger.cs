@@ -48,12 +48,12 @@ namespace UnitTests
             string expectedMessage = "Test log message";
             ManualResetEventSlim eventReceived = new ManualResetEventSlim(false);
 
-            logger.Subscribe((sender, e) =>
+            logger.NewLog += (sender, e) =>
             {
                 Assert.AreEqual(expectedLogLevel, e.LogLevel);
                 Assert.AreEqual(expectedMessage, e.Message);
                 eventReceived.Set();
-            });
+            };
 
             logger.AddLog(expectedLogLevel, expectedMessage);
 

@@ -25,6 +25,7 @@ namespace ScriptEngine.Logger
         public DateTime LogTime { get; private set; }
         public LogLevel LogLevel { get; private set; }
         public string Message { get; private set; }
+        public string FullMessage { get => LogTime.ToString() + " - " + LogLevel.ToString() + " : " + Message; }
 
         public LogEventArgs(LogLevel logLevel, string message)
         {
@@ -36,7 +37,8 @@ namespace ScriptEngine.Logger
 
     public class SELogger
     {
-        private readonly List<Action<object, LogEventArgs>> logSubscribers = new();
+        //private readonly List<Action<object, LogEventArgs>> logSubscribers = new();
+        private readonly List<EventHandler<LogEventArgs>> logSubscribers = new();
         private readonly bool logToFile;
         private readonly string logFilePath;
 
@@ -58,22 +60,16 @@ namespace ScriptEngine.Logger
             }
         }
 
-        /// <summary>
-        /// Subscribe a subscriber to log events.
-        /// </summary>
-        /// <param name="subscriber">The subscriber action to add.</param>
-        public void Subscribe(Action<object, LogEventArgs> subscriber)
+        public event EventHandler<LogEventArgs> NewLog
         {
-            logSubscribers.Add(subscriber);
-        }
-
-        /// <summary>
-        /// Unsubscribe a subscriber from log events.
-        /// </summary>
-        /// <param name="subscriber">The subscriber action to remove.</param>
-        public void Unsubscribe(Action<object, LogEventArgs> subscriber)
-        {
-            logSubscribers.Remove(subscriber);
+            add
+            {
+                logSubscribers.Add(value);
+            }
+            remove
+            {
+                logSubscribers.Remove(value);
+            }
         }
 
         /// <summary>

@@ -18,14 +18,13 @@ namespace UnitTests
         {
             SELogger logger = new SELogger(logToFile: false);
 
-            logger.Subscribe((sender, e) =>
+            logger.NewLog += (sender, e) =>
             {
                 Debug.WriteLine(e.Message);
-            });
+            };
 
             Assert.IsFalse(CSharpCompiler.ValidateMainScript("", ref logger));
             Thread.Sleep(10); // Wait for the logger thread
-
         }
 
         /// <summary>
@@ -39,13 +38,13 @@ namespace UnitTests
             SELogger logger = new SELogger(logToFile: false);
 
             ManualResetEventSlim eventReceived = new ManualResetEventSlim(false);
-            logger.Subscribe((sender, e) =>
+            logger.NewLog += (sender, e) =>
             {
                 Debug.WriteLine(e.LogLevel.ToString() + " : " + e.Message);
                 Assert.AreEqual(LogLevel.Warning, e.LogLevel);
                 Assert.IsTrue(e.Message.Contains("Missing optional method"));
                 eventReceived.Set();
-            });
+            };
 
             Assert.IsTrue(CSharpCompiler.ValidateMainScript(base_path + "ValidateMainScript_Test_01.cs", ref logger));
 

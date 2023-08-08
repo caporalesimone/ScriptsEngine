@@ -4,6 +4,7 @@ using ScriptEngine.Logger;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
 
 namespace UnitTests
@@ -24,10 +25,15 @@ namespace UnitTests
             Assert.AreEqual(script.ScriptStatus, EScriptStatus.NotCompiled);
             Assert.IsTrue(script.LastExecutionTime < DateTime.Now);
 
-            logger.Subscribe((sender, e) =>
+            logger.NewLog += (sender, e) =>
             {
-                Debug.WriteLine(e.Message);
-            });
+                Debug.WriteLine(e.FullMessage);
+            };
+
+            script.StatusChanged += (sender, e) =>
+            {
+                Debug.WriteLine($"Event Change from {e.ScriptGuid}: {e.NewStatus}" );
+            };
 
             script.CompileAsync();
 

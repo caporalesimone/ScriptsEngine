@@ -1,6 +1,9 @@
-﻿using System;
+﻿using ScriptEngine.Logger;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ScriptEngine
 {
@@ -22,11 +25,29 @@ namespace ScriptEngine
         Error,
     }
 
+    // Class for Status Changed Notification
+    public class StatusChangedEventArgs : EventArgs
+    {
+        public Guid ScriptGuid { get; }
+        public EScriptStatus NewStatus { get; }
+
+        public StatusChangedEventArgs(Guid scriptGuid, EScriptStatus newStatus)
+        {
+            ScriptGuid = scriptGuid;
+            NewStatus = newStatus;
+        }
+    }
+
     /// <summary>
     /// Abstract class of a script. All scripts must inherit from it
     /// </summary>
     public abstract class ScriptAbstraction
     {
+        #region private variables
+        EScriptStatus m_Status;
+        Guid m_scriptGuid;
+        #endregion
+
         #region properties
         /// <summary>
         /// Type of the script
@@ -52,10 +73,44 @@ namespace ScriptEngine
         /// Last time the script has been executed
         /// </summary>
         public DateTime LastExecutionTime { get; private set; }
+        
+        public Guid UniqueID { get => m_scriptGuid; }
+
         /// <summary>
-        /// This property tells the status of the script
+        /// This property tells the status of the script. On each status change an event is notified
         /// </summary>
-        public abstract EScriptStatus ScriptStatus { get; }
+        public EScriptStatus ScriptStatus { get { return m_Status; } 
+            protected set
+            {
+                if (m_Status != value)
+                {
+                    m_Status = value;
+                    OnStatusChanged(new StatusChangedEventArgs(m_scriptGuid, m_Status));
+                }
+            }
+        }
+
+        private readonly List<EventHandler<StatusChangedEventArgs>> statusChangedHandlers = new();
+
+        public event EventHandler<StatusChangedEventArgs> StatusChanged
+        {
+            add
+            {
+                statusChangedHandlers.Add(value);
+            }
+            remove
+            {
+                statusChangedHandlers.Remove(value);
+            }
+        }
+
+        protected virtual void OnStatusChanged(StatusChangedEventArgs e)
+        {
+            foreach (var handler in statusChangedHandlers)
+            {
+                handler?.Invoke(this, e);
+            }
+        }
 
         /// <summary>
         /// Thread that contains the script execution
@@ -70,7 +125,9 @@ namespace ScriptEngine
         {
             Type = EScriptLanguage.Unknown;
             FullPath = path;
+            m_Status = EScriptStatus.NotCompiled;
             m_ScriptExecutionThread = null;
+            m_scriptGuid = Guid.NewGuid();
         }
 
         /// <summary>
@@ -122,5 +179,16 @@ namespace ScriptEngine
         /// Internal implementation of the StopScriptAsync Method
         /// </summary>
         protected abstract void StopScriptAsyncInternal();
+
+        private readonly List<Action<object, EScriptStatus>> statusChangeSubscribers = new();
+
+        public void Subscribe(Action<object, EScriptStatus> subscriber)
+        {
+            statusChangeSubscribers.Add(subscriber);
+        }
+        public void Unsubscribe(Action<object, EScriptStatus> subscriber)
+        {
+            statusChangeSubscribers.Remove(subscriber);
+        }
     }
 }

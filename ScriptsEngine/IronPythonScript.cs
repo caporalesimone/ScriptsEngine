@@ -41,8 +41,6 @@ namespace ScriptEngine
             */
         }
 
-        public override EScriptStatus ScriptStatus { get => ScriptStatus; }
-
         public override bool ValidateScript()
         {
             return true;

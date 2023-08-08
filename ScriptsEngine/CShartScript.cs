@@ -19,7 +19,6 @@ namespace ScriptEngine
         private Assembly m_assembly = null;
         private object m_scriptInstance = null;
         private MethodInfo m_run_method = null;
-        private EScriptStatus m_ScriptStatus;
 
         private readonly bool m_compile_debug = true; // TODO Needs to be changed by the caller
         private readonly string assemblies_cfg_path = ""; // TODO Needs to be set by the caller
@@ -30,11 +29,9 @@ namespace ScriptEngine
         {
             Type = EScriptLanguage.CSharp;
             m_assembly = null;
-            m_ScriptStatus = EScriptStatus.NotCompiled;
+            ScriptStatus = EScriptStatus.NotCompiled;
             m_Logger = logger;
         }
-
-        public override EScriptStatus ScriptStatus { get => m_ScriptStatus;}
 
         /// <summary>
         /// This function should validate the content of the script if is needed
@@ -49,7 +46,7 @@ namespace ScriptEngine
         {
             if (m_assembly != null) { m_assembly = null; }
 
-            m_ScriptStatus = EScriptStatus.Compiling;
+            ScriptStatus = EScriptStatus.Compiling;
 
             new Thread(() =>
             {
@@ -58,17 +55,17 @@ namespace ScriptEngine
                     bool compile = CSharpCompiler.CompileFromFile(FullPath, m_compile_debug, assemblies_cfg_path, ref m_Logger, out m_assembly, out m_run_method);
                     if (compile)
                     {
-                        m_ScriptStatus = EScriptStatus.Ready;
+                        ScriptStatus = EScriptStatus.Ready;
                     }
                     else
                     {
-                        m_ScriptStatus = EScriptStatus.Error;
+                        ScriptStatus = EScriptStatus.Error;
                     }
                 }
                 catch (Exception ex)
                 {
                     m_Logger.AddLog(LogLevel.Error, ex.ToString());
-                    m_ScriptStatus = EScriptStatus.Error;
+                    ScriptStatus = EScriptStatus.Error;
                 }
             }).Start();
         }
@@ -82,7 +79,7 @@ namespace ScriptEngine
 
             m_ScriptExecutionThread = new Thread(() =>
             {
-                m_ScriptStatus = EScriptStatus.Running;
+                ScriptStatus = EScriptStatus.Running;
                 // This is a blocking call that ends when the Run method ends.
                 CSharpCompiler.CallScriptMethod(m_scriptInstance, m_run_method, out _);
                 StopScriptAsync();
@@ -97,9 +94,9 @@ namespace ScriptEngine
             // ends gracefully. If this not happen within 10 seconds, who is still running will be aborted
 
             if (m_ScriptExecutionThread == null) return;
-            if (m_ScriptStatus != EScriptStatus.Running) return;
+            if (ScriptStatus != EScriptStatus.Running) return;
 
-            m_ScriptStatus = EScriptStatus.ReaquestedTerminate;
+            ScriptStatus = EScriptStatus.ReaquestedTerminate;
 
             new Thread(() =>
             {
@@ -146,7 +143,7 @@ namespace ScriptEngine
                 timeout.Stop();
 
                 m_ScriptExecutionThread = null;
-                m_ScriptStatus = EScriptStatus.Ready;
+                ScriptStatus = EScriptStatus.Ready;
             }).Start();
         }
     }
