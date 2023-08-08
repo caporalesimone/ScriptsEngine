@@ -1,9 +1,9 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ScriptsEngine;
+using ScriptEngine;
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using ScriptsEngine.Logger;
+using ScriptEngine.Logger;
 using System.Threading;
 
 namespace UnitTests

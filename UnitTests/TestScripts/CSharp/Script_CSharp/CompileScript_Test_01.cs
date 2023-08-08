@@ -1,10 +1,10 @@
 using System;
 
-namespace CSharpCompiler_TestScripts
+namespace Script_CSharp_TestScripts
 {
-    class ValidateMainScript_Test_01
+    class CompileScript_Test_01
     {
-        public ValidateMainScript_Test_01()
+        public CompileScript_Test_01()
         {
             Console.WriteLine("Constructor");
         }

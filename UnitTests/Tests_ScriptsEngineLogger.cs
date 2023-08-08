@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ScriptsEngine.Logger;
+using ScriptEngine.Logger;
 using System;
 using System.IO;
 using System.Threading;

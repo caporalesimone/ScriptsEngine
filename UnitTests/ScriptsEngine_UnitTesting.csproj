@@ -50,15 +50,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestScripts\CSharp\CSharpCompiler_Scripts\ValidateMainScript_Test_01.cs" />
+    <Compile Include="TestScripts\CSharp\Script_CSharp\CompileScript_Test_01.cs" />
     <Compile Include="Tests_Script_CSharp.cs" />
     <Compile Include="Tests_CSharpCompiler.cs" />
     <Compile Include="Tests_ScriptFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests_Script.cs" />
     <Compile Include="Tests_ScriptsEngineLogger.cs" />
+    <Compile Include="Tests_Script_IronPython.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="TestScripts\Python\CreateScript_Test_01.py" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ScriptsEngine\ScriptsEngine.csproj">
