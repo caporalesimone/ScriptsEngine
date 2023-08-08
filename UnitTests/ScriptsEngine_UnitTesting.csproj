@@ -64,6 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Assemblies.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="TestScripts\Python\CreateScript_Test_01.py" />
   </ItemGroup>

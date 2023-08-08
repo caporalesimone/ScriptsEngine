@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting.Channels;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UnitTests
@@ -50,6 +51,15 @@ namespace UnitTests
 
                 if (script.ScriptStatus == EScriptStatus.Error) Assert.Fail("Failed to compile the script");
             }
+
+            script.RunScriptAsync();
+
+            while (script.ScriptStatus != EScriptStatus.Ready)
+            {
+                Thread.Sleep(100);
+            }
+
+            //Thread.Sleep(1000);
         }
     }
 }

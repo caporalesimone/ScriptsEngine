@@ -8,6 +8,7 @@ namespace ScriptEngine.Logger
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Text;
     using System.Threading;
 
     public enum LogLevel
@@ -15,7 +16,8 @@ namespace ScriptEngine.Logger
         Debug,
         Error,
         Warning,
-        Info
+        Info,
+        Script
     }
 
     public delegate void LogEventHandler(object sender, LogEventArgs e);
@@ -113,5 +115,49 @@ namespace ScriptEngine.Logger
                 });
             }
         }
+
+        /// <summary>
+        /// This will redirect any Console message into the logger
+        /// </summary>
+        /// <param name="logLevel"></param>
+        public void EnableConsoleOutputCapture(LogLevel logLevel)
+        {
+            LogTextWriter logTextWriter = new (this, logLevel);
+            Console.SetOut(logTextWriter);
+        }
+
+        /// <summary>
+        /// This will recover the Console
+        /// </summary>
+        public void DisableConsoleOutputCapure ()
+        {
+            Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+        }
+
     }
+
+    public class LogTextWriter : TextWriter
+    {
+        private readonly SELogger logger;
+        private readonly LogLevel logLevel;
+
+        public LogTextWriter(SELogger logger, LogLevel logLevel)
+        {
+            this.logger = logger;
+            this.logLevel = logLevel;
+        }
+
+        public override void WriteLine(string value)
+        {
+            logger.AddLog(logLevel, value);
+        }
+
+        public override void Write(string value)
+        {
+            logger.AddLog(logLevel, value);
+        }
+
+        public override Encoding Encoding => Encoding.Default;
+    }
+
 }

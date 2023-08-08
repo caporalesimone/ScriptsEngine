@@ -96,7 +96,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="CShartScript.cs" />
+    <Compile Include="CSharpScript.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptFactory.cs" />
     <Compile Include="IronPythonScript.cs" />

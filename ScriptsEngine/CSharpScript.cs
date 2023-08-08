@@ -1,6 +1,7 @@
 ﻿using ScriptEngine.Logger;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 
@@ -13,7 +14,7 @@ namespace ScriptEngine
         private MethodInfo m_run_method = null;
 
         private readonly bool m_compile_debug = true; // TODO Needs to be changed by the caller
-        private readonly string assemblies_cfg_path = ""; // TODO Needs to be set by the caller
+        private readonly string assemblies_cfg_path = "Assemblies.cfg"; // TODO Needs to be set by the caller
 
         private SELogger m_Logger;
 
@@ -67,10 +68,12 @@ namespace ScriptEngine
 
             m_ScriptExecutionThread = new Thread(() =>
             {
+                m_Logger.EnableConsoleOutputCapture(LogLevel.Script);
                 ScriptStatus = EScriptStatus.Running;
                 // This is a blocking call that ends when the Run method ends.
                 CSharpCompiler.CallScriptMethod(m_scriptInstance, m_run_method, out _);
                 StopScriptAsync();
+                m_Logger.DisableConsoleOutputCapure();
             });
 
             m_ScriptExecutionThread.Start();
