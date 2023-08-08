@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ScriptsEngine.Properties {
+namespace ScriptEngine.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

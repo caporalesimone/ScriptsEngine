@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System;
 using System.Diagnostics;
-using ScriptsEngine.Logger;
+using ScriptEngine.Logger;
 
-namespace ScriptsEngine
+namespace ScriptEngine
 {
     public static class CSharpCompiler
     {
@@ -42,14 +42,14 @@ namespace ScriptsEngine
         private class CompilerOptions : IProviderOptions
         {
             string _compilerVersion = "8.0";
-            IDictionary<string, string> _compilerOptions = new Dictionary<string, string>() { };
+            readonly IDictionary<string, string> _compilerOptions = new Dictionary<string, string>() { };
             public string CompilerVersion { get => _compilerVersion; set { _compilerVersion = value; } }
             public bool WarnAsError => false;
             public bool UseAspNetSettings => true;
             public string CompilerFullPath => Path.Combine("roslyn", "csc.exe");
             public int CompilerServerTimeToLive => 60 * 60; // 1h
             IDictionary<string, string> IProviderOptions.AllOptions { get => _compilerOptions; }
-            IDictionary<string, string> Options { set { _compilerOptions = value; } } // For Debug
+            //IDictionary<string, string> Options { set { _compilerOptions = value; } } // For Debug
         }
 
         /// <summary>
@@ -64,10 +64,11 @@ namespace ScriptsEngine
         /// <returns></returns>
         private static List<string> ParseAssembliesConfigFile(string Assemblies_cfg_path)
         {
-            // If file does not exists return null
-            if (!File.Exists(Assemblies_cfg_path)) return null;
-
             List<string> assemblies = new();
+
+            // If file does not exists return null
+            if (!File.Exists(Assemblies_cfg_path)) return assemblies;
+
             using StreamReader sr = new(Assemblies_cfg_path);
             string line;
 

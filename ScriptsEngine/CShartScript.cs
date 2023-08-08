@@ -1,31 +1,40 @@
-﻿using ScriptsEngine.Logger;
+﻿using ScriptEngine.Logger;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 
-namespace ScriptsEngine
+namespace ScriptEngine
 {
-    public class CSharpScript : Script
+    public class CSharpScript : ScriptAbstraction
     {
+
+        //  runAction = () => runMethod.Invoke(null, null);
+        // Thread thread = new Thread(() =>
+        //{
+        //    runAction?.Invoke();
+        // });
+
+
         private Assembly m_assembly = null;
         private object m_scriptInstance = null;
         private MethodInfo m_run_method = null;
-        private EScriptStatus m_ScriptStatus = EScriptStatus.NotCompiled;
+        private EScriptStatus m_ScriptStatus;
 
         private readonly bool m_compile_debug = true; // TODO Needs to be changed by the caller
         private readonly string assemblies_cfg_path = ""; // TODO Needs to be set by the caller
 
         private SELogger m_Logger;
 
-        public CSharpScript(string path) : base (path)
+        public CSharpScript(string path, SELogger logger) : base(path)
         {
-            Type = EScriptType.CSharp;
+            Type = EScriptLanguage.CSharp;
             m_assembly = null;
             m_ScriptStatus = EScriptStatus.NotCompiled;
-            m_Logger = new SELogger(logToFile: false);
+            m_Logger = logger;
         }
 
-        public override EScriptStatus ScriptStatus { get => m_ScriptStatus; }
+        public override EScriptStatus ScriptStatus { get => m_ScriptStatus;}
 
         /// <summary>
         /// This function should validate the content of the script if is needed
@@ -42,17 +51,26 @@ namespace ScriptsEngine
 
             m_ScriptStatus = EScriptStatus.Compiling;
 
-            new Thread( () => {
-                bool compile = CSharpCompiler.CompileFromFile(FullPath, m_compile_debug, assemblies_cfg_path, ref m_Logger, out m_assembly, out m_run_method);
-                if (compile) 
-                { 
-                    m_ScriptStatus = EScriptStatus.Ready; 
-                }
-                else
+            new Thread(() =>
+            {
+                try
                 {
+                    bool compile = CSharpCompiler.CompileFromFile(FullPath, m_compile_debug, assemblies_cfg_path, ref m_Logger, out m_assembly, out m_run_method);
+                    if (compile)
+                    {
+                        m_ScriptStatus = EScriptStatus.Ready;
+                    }
+                    else
+                    {
+                        m_ScriptStatus = EScriptStatus.Error;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.AddLog(LogLevel.Error, ex.ToString());
                     m_ScriptStatus = EScriptStatus.Error;
                 }
-            } ).Start();
+            }).Start();
         }
 
         protected override void RunScritpAsycInternal()
@@ -85,6 +103,8 @@ namespace ScriptsEngine
 
             new Thread(() =>
             {
+                const int MAX_TIMEOUT = 10000;
+
                 // Now a new thread will be created and will call the Stop method of the script
                 var stop_thread = new Thread(() => CSharpCompiler.CallStopScriptMethod(m_assembly, m_scriptInstance, out _));
                 stop_thread.Start();
@@ -93,9 +113,9 @@ namespace ScriptsEngine
                 var timeout = new Stopwatch();
                 timeout.Start();
 
-                // Wait utill the state is stopped of both threads and not more than 10 seconds
-                while ( 
-                            (timeout.ElapsedMilliseconds < 10000) &&
+                // Wait util the state is stopped of both threads and not more than 10 seconds
+                while (
+                            (timeout.ElapsedMilliseconds < MAX_TIMEOUT) &&
                             (
                                 (m_ScriptExecutionThread.ThreadState != System.Threading.ThreadState.Stopped) ||
                                 (stop_thread.ThreadState != System.Threading.ThreadState.Stopped)
@@ -106,16 +126,18 @@ namespace ScriptsEngine
                 }
 
                 // If more than 10 seconds elapsed then the unstopped thread will be aborted
-                if (timeout.ElapsedMilliseconds >= 10000)
+                if (timeout.ElapsedMilliseconds >= MAX_TIMEOUT)
                 {
                     if (m_ScriptExecutionThread.ThreadState != System.Threading.ThreadState.Stopped)
                     {
+                        m_Logger.AddLog(LogLevel.Error, $"Script took more than {TimeSpan.FromMilliseconds(MAX_TIMEOUT).Duration().TotalSeconds} seconds to terminate. It will be killed.");
                         m_ScriptExecutionThread.Abort();
                         m_ScriptExecutionThread.Join(1000); // Just to be shure thread ended
                     }
 
                     if (stop_thread.ThreadState != System.Threading.ThreadState.Stopped)
                     {
+                        m_Logger.AddLog(LogLevel.Error, $"The stop function was unable to terminate in less than {TimeSpan.FromMilliseconds(MAX_TIMEOUT).Duration().TotalSeconds} seconds. It will be killed.");
                         stop_thread.Abort();
                         m_ScriptExecutionThread.Join(1000); // Just to be shure thread ended
                     }

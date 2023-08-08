@@ -2,14 +2,14 @@
 using System.IO;
 using System.Threading;
 
-namespace ScriptsEngine
+namespace ScriptEngine
 {
-    public enum EScriptType : byte
+    public enum EScriptLanguage : byte
     {
-        Unknown = 0,
-        CSharp = 1,
-        Python = 2,
-        UOSteam = 3,
+        Unknown,
+        CSharp,
+        Python,
+        UOSteam,
     }
 
     public enum EScriptStatus : byte
@@ -25,13 +25,13 @@ namespace ScriptsEngine
     /// <summary>
     /// Abstract class of a script. All scripts must inherit from it
     /// </summary>
-    public abstract class Script 
+    public abstract class ScriptAbstraction
     {
         #region properties
         /// <summary>
         /// Type of the script
         /// </summary>
-        public EScriptType Type { get; protected set; }
+        public EScriptLanguage Type { get; protected set; }
         /// <summary>
         /// Contains the full path of the script into the filesystem
         /// </summary>
@@ -66,9 +66,9 @@ namespace ScriptsEngine
         /// Abstract Script Contructor
         /// </summary>
         /// <param name="path">Script path</param>
-        public Script(string path)
+        public ScriptAbstraction(string path)
         {
-            Type = EScriptType.Unknown;
+            Type = EScriptLanguage.Unknown;
             FullPath = path;
             m_ScriptExecutionThread = null;
         }

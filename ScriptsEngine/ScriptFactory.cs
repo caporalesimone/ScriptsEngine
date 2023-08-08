@@ -1,50 +1,37 @@
-﻿using System;
+﻿using ScriptEngine.Logger;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection.Emit;
 using System.Threading;
 
-namespace ScriptsEngine
+namespace ScriptEngine
 {
-    public class ScriptFactory //: ScriptFactoryAbstract
+    public static class ScriptFactory
     {
-        //public override IScript CreateScript(string path)
-
         /// <summary>
         /// Factory Class to create a Script Class
         /// </summary>
         /// <param name="path">Path on filesystem of the script</param>
         /// <returns></returns>
-        public Script CreateScript(string path)
+        public static ScriptAbstraction CreateScript(string path, SELogger logger)
         {
             if (path == null) return null;
             if (!File.Exists(path)) return null;
 
             path = Path.GetFullPath(path); // Converts a possible relative path into an absolute path
             string ext = Path.GetExtension(path);
-
-            Script ret;
-
-            switch (ext)
+            ScriptAbstraction ret = ext switch
             {
-                case ".cs":
-                    ret = new CSharpScript(path);
-                    break;
-/*
-                case ".py":
-                    ret = new PythonScript(path);
-                    break;
-                case ".uos":
-                    ret = new UOSScript(path);
-                    break;
-*/
-                default:
-                    ret = null;
-                    break;
-            }
+                ".cs" => new CSharpScript(path, logger),
+                ".py" => new IronPythonScript(path, logger),
+                //".uos" => new UOSScript(path),
+                _ => null,
+            };
 
-            if (ret.ValidateScript()) return ret;
-            return null;
+            if (ret == null) return null;
+
+            return ret.ValidateScript() == true ? ret : null;
         }
     }
 

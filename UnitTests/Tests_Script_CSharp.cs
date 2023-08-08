@@ -2,6 +2,9 @@
 using ScriptEngine;
 using ScriptEngine.Logger;
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace UnitTests
 {
@@ -16,8 +19,31 @@ namespace UnitTests
             SELogger logger = new SELogger(logToFile: false);
             ScriptAbstraction script = ScriptFactory.CreateScript($"{base_path}CompileScript_Test_01.cs", logger);
             Assert.IsNotNull(script);
-            //script.CompileAsync();
+            Assert.AreEqual(script.FileName, "CompileScript_Test_01.cs");
+            Assert.IsTrue(File.Exists(script.FullPath));
+            Assert.AreEqual(script.ScriptStatus, EScriptStatus.NotCompiled);
+            Assert.IsTrue(script.LastExecutionTime < DateTime.Now);
 
+            logger.Subscribe((sender, e) =>
+            {
+                Debug.WriteLine(e.Message);
+            });
+
+            script.CompileAsync();
+
+            var startTime = DateTime.Now;
+            while (script.ScriptStatus != EScriptStatus.Compiling)
+            {
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(1)) Assert.Fail("Elapsed too much for enter in Compiling state");
+            }
+
+            startTime = DateTime.Now;
+            while (script.ScriptStatus != EScriptStatus.Ready)
+            {
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(15)) Assert.Fail("Elapsed too much for exit from Compiling state");
+
+                if (script.ScriptStatus == EScriptStatus.Error) Assert.Fail("Failed to compile the script");
+            }
         }
     }
 }

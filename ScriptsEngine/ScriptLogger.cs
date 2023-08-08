@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace ScriptsEngine.Logger
+namespace ScriptEngine.Logger
 {
     using System;
     using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace ScriptsEngine.Logger
 
     public class SELogger
     {
-        private List<Action<object, LogEventArgs>> logSubscribers = new List<Action<object, LogEventArgs>>();
+        private readonly List<Action<object, LogEventArgs>> logSubscribers = new();
         private readonly bool logToFile;
         private readonly string logFilePath;
 
