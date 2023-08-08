@@ -60,6 +60,9 @@ namespace ScriptEngine.Logger
             }
         }
 
+        /// <summary>
+        /// This is the handler for the New Log Event. Subscribe here to be notified of a new log
+        /// </summary>
         public event EventHandler<LogEventArgs> NewLog
         {
             add
@@ -112,31 +115,3 @@ namespace ScriptEngine.Logger
         }
     }
 }
-
-
-/*
- class Program
-    {
-        static void Main(string[] args)
-        {
-            SELogger logger = new SELogger(logToFile: true);
-
-            // Subscribe two consumers
-            logger.Subscribe(ConsoleLogConsumer);
-            logger.Subscribe(FileLogConsumer);
-
-            logger.AddLog(LogLevel.Info, "This is an information log.");
-            logger.AddLog(LogLevel.Error, "Error! Something went wrong.");
-        }
-
-        static void ConsoleLogConsumer(object sender, LogEventArgs e)
-        {
-            Console.WriteLine($"[{e.LogLevel}] {e.Message}");
-        }
-
-        static void FileLogConsumer(object sender, LogEventArgs e)
-        {
-            // Implement the logic to write to file, if necessary
-        }
-    }
-*/

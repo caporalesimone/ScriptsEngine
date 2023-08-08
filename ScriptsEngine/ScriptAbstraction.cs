@@ -25,7 +25,9 @@ namespace ScriptEngine
         Error,
     }
 
-    // Class for Status Changed Notification
+    /// <summary>
+    /// Class for Status Changed Notification 
+    /// </summary>
     public class StatusChangedEventArgs : EventArgs
     {
         public Guid ScriptGuid { get; }
@@ -43,12 +45,13 @@ namespace ScriptEngine
     /// </summary>
     public abstract class ScriptAbstraction
     {
-        #region private variables
-        EScriptStatus m_Status;
-        Guid m_scriptGuid;
+        #region PrivatesVariables
+        private EScriptStatus m_Status; // Script Status
+        private Guid m_scriptGuid; // Unique script identifier
+        private readonly List<EventHandler<StatusChangedEventArgs>> statusChangedHandlers = new(); // List of subscribers on the event
         #endregion
 
-        #region properties
+        #region Properties
         /// <summary>
         /// Type of the script
         /// </summary>
@@ -73,13 +76,16 @@ namespace ScriptEngine
         /// Last time the script has been executed
         /// </summary>
         public DateTime LastExecutionTime { get; private set; }
-        
+        /// <summary>
+        /// Unique identifier of the script
+        /// </summary>
         public Guid UniqueID { get => m_scriptGuid; }
-
         /// <summary>
         /// This property tells the status of the script. On each status change an event is notified
         /// </summary>
-        public EScriptStatus ScriptStatus { get { return m_Status; } 
+        public EScriptStatus ScriptStatus
+        {
+            get { return m_Status; }
             protected set
             {
                 if (m_Status != value)
@@ -90,8 +96,9 @@ namespace ScriptEngine
             }
         }
 
-        private readonly List<EventHandler<StatusChangedEventArgs>> statusChangedHandlers = new();
-
+        /// <summary>
+        /// Event handler for the subscriber on the Status Changed notification
+        /// </summary>
         public event EventHandler<StatusChangedEventArgs> StatusChanged
         {
             add
@@ -104,19 +111,12 @@ namespace ScriptEngine
             }
         }
 
-        protected virtual void OnStatusChanged(StatusChangedEventArgs e)
-        {
-            foreach (var handler in statusChangedHandlers)
-            {
-                handler?.Invoke(this, e);
-            }
-        }
-
         /// <summary>
         /// Thread that contains the script execution
         /// </summary>
         protected Thread m_ScriptExecutionThread = null;
-		#endregion
+        #endregion
+
         /// <summary>
         /// Abstract Script Contructor
         /// </summary>
@@ -130,6 +130,7 @@ namespace ScriptEngine
             m_scriptGuid = Guid.NewGuid();
         }
 
+        #region PublicMethods
         /// <summary>
         /// Force a specific validation of the script
         /// </summary>
@@ -179,16 +180,20 @@ namespace ScriptEngine
         /// Internal implementation of the StopScriptAsync Method
         /// </summary>
         protected abstract void StopScriptAsyncInternal();
+        #endregion
 
-        private readonly List<Action<object, EScriptStatus>> statusChangeSubscribers = new();
-
-        public void Subscribe(Action<object, EScriptStatus> subscriber)
+        #region PrivateMethods
+        /// <summary>
+        /// Status Changed event notification
+        /// </summary>
+        /// <param name="e"></param>
+        private void OnStatusChanged(StatusChangedEventArgs e)
         {
-            statusChangeSubscribers.Add(subscriber);
+            foreach (var handler in statusChangedHandlers)
+            {
+                handler?.Invoke(this, e);
+            }
         }
-        public void Unsubscribe(Action<object, EScriptStatus> subscriber)
-        {
-            statusChangeSubscribers.Remove(subscriber);
-        }
+        #endregion
     }
 }

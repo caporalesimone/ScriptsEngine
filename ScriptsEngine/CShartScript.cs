@@ -8,14 +8,6 @@ namespace ScriptEngine
 {
     public class CSharpScript : ScriptAbstraction
     {
-
-        //  runAction = () => runMethod.Invoke(null, null);
-        // Thread thread = new Thread(() =>
-        //{
-        //    runAction?.Invoke();
-        // });
-
-
         private Assembly m_assembly = null;
         private object m_scriptInstance = null;
         private MethodInfo m_run_method = null;
@@ -33,10 +25,6 @@ namespace ScriptEngine
             m_Logger = logger;
         }
 
-        /// <summary>
-        /// This function should validate the content of the script if is needed
-        /// </summary>
-        /// <returns>returns true if validates</returns>
         public override bool ValidateScript()
         {
             return CSharpCompiler.ValidateMainScript(FullPath, ref m_Logger);
