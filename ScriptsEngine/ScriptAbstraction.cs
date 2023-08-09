@@ -48,6 +48,12 @@ namespace ScriptEngine
         #region PrivatesVariables
         private EScriptStatus m_Status; // Script Status
         private Guid m_scriptGuid; // Unique script identifier
+        private readonly FileSystemWatcher m_FileWatcher; // Watcher that monitors the script changes
+        #endregion
+
+        #region ProtectedVariables
+        protected Thread m_ScriptExecutionThread = null; // Thread that contains the script execution
+        protected SELogger m_Logger = null;
         #endregion
 
         #region Properties
@@ -97,34 +103,51 @@ namespace ScriptEngine
                 {
                     m_Status = value;
                     StatusChangedEvent?.Invoke(this, new StatusChangedEventArgs(m_scriptGuid, m_Status));
+
+                    switch (m_Status)
+                    {
+                        case EScriptStatus.Error:
+                        case EScriptStatus.Ready:
+                        case EScriptStatus.NotCompiled:
+                            m_FileWatcher.EnableRaisingEvents = true;
+                            break;
+                        case EScriptStatus.Compiling:
+                        case EScriptStatus.Running:
+                        case EScriptStatus.ReaquestedTerminate:
+                            m_FileWatcher.EnableRaisingEvents = false;
+                            break;
+                    }
                 }
             }
         }
-
-        /// <summary>
-        /// Thread that contains the script execution
-        /// </summary>
-        protected Thread m_ScriptExecutionThread = null;
         #endregion
 
         /// <summary>
         /// Abstract Script Contructor
         /// </summary>
         /// <param name="path">Script path</param>
-        public ScriptAbstraction(string path)
+        public ScriptAbstraction(string path, SELogger logger)
         {
             Type = EScriptLanguage.Unknown;
             FullPath = path;
             m_Status = EScriptStatus.NotCompiled;
             m_ScriptExecutionThread = null;
             m_scriptGuid = Guid.NewGuid();
+            m_Logger = logger;
+            m_Logger.EnableConsoleOutputCapture(LogLevel.Script); // Enable the capture of the Console.Write and Console.Writeline
+
+            m_FileWatcher = new(Path.GetDirectoryName(path), FileName)
+            {
+                EnableRaisingEvents = false,
+            };
+            m_FileWatcher.Changed += OnFileChanged;
         }
 
         #region PublicMethods
-        /// <summary>
-        /// Force a specific validation of the script
-        /// </summary>
-        /// <returns>true if validates</returns>
+            /// <summary>
+            /// Force a specific validation of the script
+            /// </summary>
+            /// <returns>true if validates</returns>
         public abstract bool ValidateScript();
 
         /// <summary>
@@ -172,5 +195,18 @@ namespace ScriptEngine
         protected abstract void StopScriptAsyncInternal();
         #endregion
 
+
+        #region PrivateMethods
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                new Thread (() => {
+                    if (!ValidateScript()) return;
+                    CompileAsync();
+                });
+            }
+        }
+        #endregion
     }
 }

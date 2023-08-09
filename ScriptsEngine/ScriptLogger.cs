@@ -48,19 +48,13 @@ namespace ScriptEngine.Logger
         private readonly bool logToFile;
         private readonly string logFilePath;
 
-        private bool run_logger_dequeuer;
+        private readonly bool run_logger_dequeuer;
 
-        private Thread thread_logger_dequeuer;
+        private readonly Thread thread_logger_dequeuer;
 
-        /// <summary>
-        /// Property to get the log file name.
-        /// </summary>
         public string LogFilePath => logFilePath;
-
         public bool IsLoggingInProgress => isProcessingQueue;
-
         public int LogQueueSize => logQueue.Count;
-
         public int Subscribers => LogEvent?.GetInvocationList().Length ?? 0;
 
         /// <summary>

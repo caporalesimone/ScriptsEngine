@@ -52,7 +52,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestScripts\CSharp\CSharpCompiler_Scripts\ValidateMainScript_Test_01.cs" />
+    <Compile Include="TestScripts\CSharp\CSharpCompiler\ValidateMainScript_Test_01.cs" />
+    <Compile Include="TestScripts\CSharp\ScriptAbstraction\ScriptAbstraction_Test_01.cs" />
     <Compile Include="TestScripts\CSharp\Script_CSharp\CompileScript_Test_01.cs" />
     <Compile Include="TestScripts\CSharp\Script_CSharp\CompileScript_Test_02.cs" />
     <Compile Include="Tests_Script_CSharp.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="Tests_Script.cs" />
     <Compile Include="Tests_ScriptsEngineLogger.cs" />
     <Compile Include="Tests_Script_IronPython.cs" />
+    <Compile Include="Tests_ScriptAbstraction.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

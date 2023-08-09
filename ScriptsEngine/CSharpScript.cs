@@ -16,15 +16,11 @@ namespace ScriptEngine
         private readonly bool m_compile_debug = true; // TODO Needs to be changed by the caller
         private readonly string assemblies_cfg_path = "Assemblies.cfg"; // TODO Needs to be set by the caller
 
-        private SELogger m_Logger;
-
-        public CSharpScript(string path, SELogger logger) : base(path)
+        public CSharpScript(string path, SELogger logger) : base(path, logger)
         {
             Type = EScriptLanguage.CSharp;
             m_assembly = null;
             ScriptStatus = EScriptStatus.NotCompiled;
-            m_Logger = logger;
-            m_Logger.EnableConsoleOutputCapture(LogLevel.Script);
         }
 
         public override bool ValidateScript()

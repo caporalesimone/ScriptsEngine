@@ -25,7 +25,7 @@ namespace ScriptEngine
             {
                 ".cs" => new CSharpScript(path, logger),
                 ".py" => new IronPythonScript(path, logger),
-                //".uos" => new UOSScript(path),
+                //".uos" => new UOSScript(path, logger),
                 _ => null,
             };
 

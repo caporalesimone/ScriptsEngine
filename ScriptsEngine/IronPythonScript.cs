@@ -14,15 +14,13 @@ namespace ScriptEngine
 {
     internal class IronPythonScript : ScriptAbstraction
     {
+/*
         private Microsoft.Scripting.Hosting.ScriptEngine engine;
         private ScriptSource source;
         private dynamic scriptInstance;
-        private string status;
-
-        private SELogger m_logger;
-        public IronPythonScript(string path, SELogger logger) : base(path)
+*/
+        public IronPythonScript(string path, SELogger logger) : base(path, logger)
         {
-            m_logger = logger;
             /*
             engine = Python.CreateEngine();
             source = engine.CreateScriptSourceFromFile(path);
