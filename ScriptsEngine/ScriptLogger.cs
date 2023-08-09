@@ -6,10 +6,13 @@ using System.Threading;
 namespace ScriptEngine.Logger
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
 
     public enum LogLevel
     {
@@ -27,8 +30,8 @@ namespace ScriptEngine.Logger
         public DateTime LogTime { get; private set; }
         public LogLevel LogLevel { get; private set; }
         public string Message { get; private set; }
-        public string FullMessage { get => LogTime.ToString() + " - " + LogLevel.ToString() + " : " + Message; }
-
+        public string FullMessage { get => $"{LogTime:G}-[{LogLevel}]:{Message}"; }
+        
         public LogEventArgs(LogLevel logLevel, string message)
         {
             LogTime = DateTime.Now;
@@ -37,17 +40,31 @@ namespace ScriptEngine.Logger
         }
     }
 
-    public class SELogger
+    public class SELogger : IDisposable
     {
-        //private readonly List<Action<object, LogEventArgs>> logSubscribers = new();
-        private readonly List<EventHandler<LogEventArgs>> logSubscribers = new();
+        private readonly ConcurrentQueue<LogEventArgs> logQueue = new(); // Queue of logs
+        public event EventHandler<LogEventArgs> LogEvent;
+
+        private readonly object queueLock = new();
+        private bool isProcessingQueue;
+
         private readonly bool logToFile;
         private readonly string logFilePath;
+
+        private bool run_logger_dequeuer;
+
+        private Thread thread_logger_dequeuer;
 
         /// <summary>
         /// Property to get the log file name.
         /// </summary>
         public string LogFilePath => logFilePath;
+
+        public bool IsLoggingInProgress => isProcessingQueue;
+
+        public int LogQueueSize => logQueue.Count;
+
+        public int Subscribers => LogEvent?.GetInvocationList().Length ?? 0;
 
         /// <summary>
         /// Constructor for the SELogger class.
@@ -58,23 +75,18 @@ namespace ScriptEngine.Logger
             this.logToFile = logToFile;
             if (logToFile)
             {
-                logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now:yyyyMMddHHmmss}.log");
+                logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now:yyyyMMdd_HHmmss}.log");
             }
+
+            run_logger_dequeuer = true;
+
+            thread_logger_dequeuer = new(ProcessLogQueue);
+            thread_logger_dequeuer.Start();
         }
 
-        /// <summary>
-        /// This is the handler for the New Log Event. Subscribe here to be notified of a new log
-        /// </summary>
-        public event EventHandler<LogEventArgs> NewLog
+        public void Dispose()
         {
-            add
-            {
-                logSubscribers.Add(value);
-            }
-            remove
-            {
-                logSubscribers.Remove(value);
-            }
+            thread_logger_dequeuer.Abort();
         }
 
         /// <summary>
@@ -85,34 +97,50 @@ namespace ScriptEngine.Logger
         public void AddLog(LogLevel logLevel, string message)
         {
             // If there are no subscribers and not logging to file, exit immediately
-            if (logSubscribers.Count == 0 && !logToFile)
+            if ( (LogEvent == null || LogEvent?.GetInvocationList().Length == 0) && !logToFile)
             {
                 return;
             }
 
-            // Create a new log event
-            LogEventArgs logEvent = new(logLevel, message);
+            LogEventArgs newEvent = new(logLevel, message);
 
-            // If there are subscribers, notify them asynchronously
-            if (logSubscribers.Count > 0)
+            lock (queueLock)
             {
-                ThreadPool.QueueUserWorkItem((state) =>
-                {
-                    foreach (var subscriber in logSubscribers)
-                    {
-                        subscriber.BeginInvoke(this, logEvent, null, null);
-                    }
-                });
+                isProcessingQueue = true;
+                logQueue.Enqueue(newEvent);
+                Monitor.Pulse(queueLock);
             }
+        }
 
-            // If logging to file is enabled, write the log to file
-            if (logToFile)
+        /// <summary>
+        /// This function is a thread that processes the queue.
+        /// It's syncronized with AddLog function
+        /// </summary>
+        private void ProcessLogQueue()
+        {
+            while (run_logger_dequeuer)
             {
-                string logText = $"{logEvent.LogTime:G} - [{logEvent.LogLevel}] - {logEvent.Message}{Environment.NewLine}";
-                ThreadPool.QueueUserWorkItem((fileState) =>
+                LogEventArgs newEvent;
+                bool bDequeued = false;
+
+                lock (queueLock)
                 {
-                    File.AppendAllText(logFilePath, logText);
-                });
+                    while (logQueue.Count == 0)
+                    {
+                        isProcessingQueue = false;
+                        Monitor.Wait(queueLock);
+                    }
+                    bDequeued = logQueue.TryDequeue(out newEvent);
+                }
+                if (bDequeued)
+                {
+                    LogEvent?.Invoke(this, newEvent);
+
+                    if (logToFile)
+                    {
+                        File.AppendAllText(logFilePath, newEvent.FullMessage + Environment.NewLine);
+                    }
+                }
             }
         }
 

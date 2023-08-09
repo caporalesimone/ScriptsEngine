@@ -13,7 +13,7 @@ namespace UnitTests
         [TestMethod]
         public void CSharpScriptNotExisting()
         {
-            ScriptAbstraction csharp = ScriptFactory.CreateScript(@"TestFiles\CSharp\01_hello_world.cs", m_logger);
+            ScriptAbstraction csharp = ScriptFactory.CreateScript(@"TestFiles\CSharp\not_existing_script.cs", m_logger);
             Assert.IsNull(csharp);
         }
 

@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="TestScripts\CSharp\CSharpCompiler_Scripts\ValidateMainScript_Test_01.cs" />
     <Compile Include="TestScripts\CSharp\Script_CSharp\CompileScript_Test_01.cs" />
+    <Compile Include="TestScripts\CSharp\Script_CSharp\CompileScript_Test_02.cs" />
     <Compile Include="Tests_Script_CSharp.cs" />
     <Compile Include="Tests_CSharpCompiler.cs" />
     <Compile Include="Tests_ScriptFactory.cs" />

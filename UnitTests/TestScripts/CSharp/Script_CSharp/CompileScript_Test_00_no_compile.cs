@@ -15,6 +15,7 @@ namespace Script_CSharp_TestScripts
         public void Run()
         {
             Console.WriteLine("Run Method");
+xxxxxError
         }
 
         public void Stop() 

@@ -24,6 +24,7 @@ namespace ScriptEngine
             m_assembly = null;
             ScriptStatus = EScriptStatus.NotCompiled;
             m_Logger = logger;
+            m_Logger.EnableConsoleOutputCapture(LogLevel.Script);
         }
 
         public override bool ValidateScript()
@@ -68,12 +69,10 @@ namespace ScriptEngine
 
             m_ScriptExecutionThread = new Thread(() =>
             {
-                m_Logger.EnableConsoleOutputCapture(LogLevel.Script);
                 ScriptStatus = EScriptStatus.Running;
                 // This is a blocking call that ends when the Run method ends.
                 CSharpCompiler.CallScriptMethod(m_scriptInstance, m_run_method, out _);
                 StopScriptAsync();
-                m_Logger.DisableConsoleOutputCapure();
             });
 
             m_ScriptExecutionThread.Start();

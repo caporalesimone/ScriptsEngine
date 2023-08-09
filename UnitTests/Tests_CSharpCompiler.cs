@@ -18,7 +18,7 @@ namespace UnitTests
         {
             SELogger logger = new SELogger(logToFile: false);
 
-            logger.NewLog += (sender, e) =>
+            logger.LogEvent += (sender, e) =>
             {
                 Debug.WriteLine(e.Message);
             };
@@ -38,7 +38,7 @@ namespace UnitTests
             SELogger logger = new SELogger(logToFile: false);
 
             ManualResetEventSlim eventReceived = new ManualResetEventSlim(false);
-            logger.NewLog += (sender, e) =>
+            logger.LogEvent += (sender, e) =>
             {
                 Debug.WriteLine(e.LogLevel.ToString() + " : " + e.Message);
                 Assert.AreEqual(LogLevel.Warning, e.LogLevel);
@@ -48,7 +48,7 @@ namespace UnitTests
 
             Assert.IsTrue(CSharpCompiler.ValidateMainScript(base_path + "ValidateMainScript_Test_01.cs", ref logger));
 
-            bool eventReceivedResult = eventReceived.Wait(TimeSpan.FromSeconds(1));
+            bool eventReceivedResult = eventReceived.Wait(TimeSpan.FromSeconds(2));
             Assert.IsTrue(eventReceivedResult, "Log warning message not sent");
         }
     }

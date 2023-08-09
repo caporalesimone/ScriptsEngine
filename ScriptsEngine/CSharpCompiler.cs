@@ -14,7 +14,7 @@ namespace ScriptEngine
     public static class CSharpCompiler
     {
         private const string START_METHOD_NAME = "Run";
-        private const string STOP_METHOD_NAME = "StopScript";
+        private const string STOP_METHOD_NAME = "Stop";
 
         #region PrivateMethods
         private static CompilerParameters CompilerSettings(bool IncludeDebugInformation, string Assemblies_cfg_path, List<string> assemblies)
