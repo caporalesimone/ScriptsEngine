@@ -68,7 +68,7 @@ namespace UnitTests
             Assert.AreEqual(script.ScriptStatus, EScriptStatus.NotCompiled);
             Assert.IsTrue(script.LastExecutionTime < DateTime.Now);
 
-            script.StatusChanged += (sender, e) =>
+            script.StatusChangedEvent += (sender, e) =>
             {
                 Assert.AreEqual(script.UniqueID, e.ScriptGuid);
                 Debug.WriteLine($"Event change by {e.ScriptGuid}: {e.NewStatus}");
@@ -88,7 +88,7 @@ namespace UnitTests
                 Debug.WriteLine(e.FullMessage);
             };
 
-            script.StatusChanged += (sender, e) =>
+            script.StatusChangedEvent += (sender, e) =>
             {
                 Debug.WriteLine($"Event change by {e.ScriptGuid}: {e.NewStatus}");
             };

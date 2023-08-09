@@ -48,7 +48,6 @@ namespace ScriptEngine
         #region PrivatesVariables
         private EScriptStatus m_Status; // Script Status
         private Guid m_scriptGuid; // Unique script identifier
-        private readonly List<EventHandler<StatusChangedEventArgs>> statusChangedHandlers = new(); // List of subscribers on the event
         #endregion
 
         #region Properties
@@ -80,6 +79,12 @@ namespace ScriptEngine
         /// Unique identifier of the script
         /// </summary>
         public Guid UniqueID { get => m_scriptGuid; }
+
+        /// <summary>
+        /// Event handler of the Status Changed
+        /// </summary>
+        public event EventHandler<StatusChangedEventArgs> StatusChangedEvent;
+
         /// <summary>
         /// This property tells the status of the script. On each status change an event is notified
         /// </summary>
@@ -91,23 +96,8 @@ namespace ScriptEngine
                 if (m_Status != value)
                 {
                     m_Status = value;
-                    OnStatusChanged(new StatusChangedEventArgs(m_scriptGuid, m_Status));
+                    StatusChangedEvent?.Invoke(this, new StatusChangedEventArgs(m_scriptGuid, m_Status));
                 }
-            }
-        }
-
-        /// <summary>
-        /// Event handler for the subscriber on the Status Changed notification
-        /// </summary>
-        public event EventHandler<StatusChangedEventArgs> StatusChanged
-        {
-            add
-            {
-                statusChangedHandlers.Add(value);
-            }
-            remove
-            {
-                statusChangedHandlers.Remove(value);
             }
         }
 
@@ -182,18 +172,5 @@ namespace ScriptEngine
         protected abstract void StopScriptAsyncInternal();
         #endregion
 
-        #region PrivateMethods
-        /// <summary>
-        /// Status Changed event notification
-        /// </summary>
-        /// <param name="e"></param>
-        private void OnStatusChanged(StatusChangedEventArgs e)
-        {
-            foreach (var handler in statusChangedHandlers)
-            {
-                handler?.Invoke(this, e);
-            }
-        }
-        #endregion
     }
 }

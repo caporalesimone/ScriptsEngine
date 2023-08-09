@@ -7,12 +7,9 @@ namespace ScriptEngine.Logger
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Text;
     using System.Threading;
-    using System.Threading.Tasks;
 
     public enum LogLevel
     {
